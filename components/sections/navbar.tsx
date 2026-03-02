@@ -5,7 +5,12 @@ import { NavMenu } from "@/components/nav-menu";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { cn } from "@/lib/utils";
 import { Menu, X } from "lucide-react";
-import { AnimatePresence, motion, useScroll } from "motion/react";
+import {
+  AnimatePresence,
+  motion,
+  useScroll,
+  type Variants,
+} from "motion/react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
@@ -25,13 +30,13 @@ const INITIAL_WIDTH = "70rem";
 const MAX_WIDTH = "800px";
 
 // Animation variants
-const overlayVariants = {
+const overlayVariants: Variants = {
   hidden: { opacity: 0 },
   visible: { opacity: 1 },
   exit: { opacity: 0 },
 };
 
-const drawerVariants = {
+const drawerVariants: Variants = {
   hidden: { opacity: 0, y: 100 },
   visible: {
     opacity: 1,
@@ -51,12 +56,12 @@ const drawerVariants = {
   },
 };
 
-const drawerMenuContainerVariants = {
+const drawerMenuContainerVariants: Variants = {
   hidden: { opacity: 0 },
   visible: { opacity: 1 },
 };
 
-const drawerMenuVariants = {
+const drawerMenuVariants: Variants = {
   hidden: { opacity: 0 },
   visible: { opacity: 1 },
 };
