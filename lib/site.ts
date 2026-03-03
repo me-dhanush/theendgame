@@ -1,6 +1,6 @@
 export const siteConfig = {
   name: "TheEndGame",
-  url: "http://localhost:3000",
+  url: "https://theendgame-chess.vercel.app/",
   description: "Run real-time knockout tournaments online.",
   links: {
     twitter: "",

@@ -1,14 +1,56 @@
-'use client';
+"use client";
 
-import { HeroSection } from "@/components/sections/hero-section";
-import SVGBracket from "@/components/ui/SVGBracket";
-import { testRounds } from "@/lib/pairing";
+import { useEffect, useState } from "react";
+import { readNdjsonStream } from "@/lib/readNdjsonStream";
+import { Chessboard } from "react-chessboard";
 
-export default function Home() {
+function formatTime(seconds: number) {
+  const mins = Math.floor(seconds / 60);
+  const secs = seconds % 60;
+  return `${mins}:${secs.toString().padStart(2, "0")}`;
+}
+
+export default function LiveFeed() {
+  const [position, setPosition] = useState(
+    "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+  );
+  const [whiteTime, setWhiteTime] = useState(0);
+  const [blackTime, setBlackTime] = useState(0);
+
+  const chessboardOptions = {
+    position,
+    id: "position",
+  };
+
+  useEffect(() => {
+    const startStream = async () => {
+     const response = await fetch("/api/tv/bullet");
+
+      await readNdjsonStream(response, (data) => {
+        if (data.t === "fen" && data.d) {
+          setPosition(data.d.fen);
+          setWhiteTime(data.d.wc);
+          setBlackTime(data.d.bc);
+        }
+      });
+    };
+
+    startStream();
+  }, []);
+
   return (
-    <main className="flex flex-col items-center justify-center divide-y divide-border min-h-screen w-full">
-      <HeroSection />
-      <SVGBracket rounds={testRounds} />
-    </main>
+    <div style={{ width: 400, margin: "auto", textAlign: "center" }}>
+      {/* Black Clock */}
+      <div style={{ fontSize: 22, fontWeight: "bold", marginBottom: 10 }}>
+        ⬛ {formatTime(blackTime)}
+      </div>
+
+      <Chessboard options={chessboardOptions} />
+
+      {/* White Clock */}
+      <div style={{ fontSize: 22, fontWeight: "bold", marginTop: 10 }}>
+        ⬜ {formatTime(whiteTime)}
+      </div>
+    </div>
   );
 }
