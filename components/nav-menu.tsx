@@ -2,30 +2,14 @@
 
 import { motion } from "motion/react";
 import React, { useRef, useState } from "react";
+import { navLinks } from "./nav-links";
 
 interface NavItem {
   name: string;
   href: string;
 }
 
-const navs: NavItem[] = [
-  {
-    name: "Home",
-    href: "#hero",
-  },
-  {
-    name: "Tournaments",
-    href: "#tournaments",
-  },
-  {
-    name: "Leaderboard",
-    href: "#leaderboard",
-  },
-  {
-    name: "About",
-    href: "#about",
-  },
-];
+const navs: NavItem[] = navLinks;
 
 export function NavMenu() {
   const ref = useRef<HTMLUListElement>(null);

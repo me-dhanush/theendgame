@@ -13,18 +13,14 @@ import {
 } from "motion/react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { navLinks } from "../nav-links";
 
 interface NavItem {
   name: string;
   href: string;
 }
 
-const navs: NavItem[] = [
-  { name: "Home", href: "#hero" },
-  { name: "Tournaments", href: "#tournaments" },
-  { name: "Leaderboard", href: "#leaderboard" },
-  { name: "About", href: "#about" },
-];
+const navs: NavItem[] = navLinks;
 
 const INITIAL_WIDTH = "70rem";
 const MAX_WIDTH = "800px";
@@ -130,7 +126,7 @@ const sections = navs.map((item) => item.href.substring(1));
               <p className="text-lg font-semibold text-primary">TheEndGame</p>
             </Link>
 
-            <NavMenu />
+            <NavMenu/>
 
             <div className="flex flex-row items-center gap-1 md:gap-3 shrink-0">
               <ThemeToggle />

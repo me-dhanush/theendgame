@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 
 export function HeroSection() {
   return (
-    <section className="relative min-h-screen w-full bg-background overflow-hidden">
+    <section id="hero" className="relative min-h-screen w-full bg-background overflow-hidden">
       {/* Background grid */}
       <InteractiveGridPattern
         className="absolute inset-0 opacity-30"
