@@ -40,8 +40,8 @@ export function HeroSection() {
         {/* CTA */}
         <div className="mt-10 flex gap-6">
           <Link
-            href="/tournament/join"
-            className="px-8 py-4 bg-secondary text-primary-foreground text-lg font-semibold rounded-md hover:opacity-90 transition"
+            href="/create-tournament"
+            className="px-8 py-4 bg-secondary text-white text-lg font-semibold rounded-md hover:opacity-90 transition"
           >
             Enter the Arena
           </Link>

@@ -2,7 +2,7 @@ import TvBoard from "@/components/ui/tv-board";
 
 export default function LiveFeed() {
   return (
-    <div className="min-h-screen px-6 py-10">
+    <div className="min-h-screen py-16">
       {/* Header */}
       <div className="text-center mb-12">
         <h1 className="text-4xl font-bold tracking-tight">Lichess TV</h1>
