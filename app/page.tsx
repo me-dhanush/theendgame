@@ -4,6 +4,15 @@ import { useEffect, useState } from "react";
 import { readNdjsonStream } from "@/lib/readNdjsonStream";
 import { Chessboard } from "react-chessboard";
 
+type LichessFenEvent = {
+  t: string;
+  d?: {
+    fen: string;
+    wc: number;
+    bc: number;
+  };
+};
+
 function formatTime(seconds: number) {
   const mins = Math.floor(seconds / 60);
   const secs = seconds % 60;
@@ -24,13 +33,15 @@ export default function LiveFeed() {
 
   useEffect(() => {
     const startStream = async () => {
-     const response = await fetch("/api/tv/bullet");
+      const response = await fetch("/api/tv/bullet");
 
       await readNdjsonStream(response, (data) => {
-        if (data.t === "fen" && data.d) {
-          setPosition(data.d.fen);
-          setWhiteTime(data.d.wc);
-          setBlackTime(data.d.bc);
+        const event = data as LichessFenEvent;
+
+        if (event.t === "fen" && event.d) {
+          setPosition(event.d.fen);
+          setWhiteTime(event.d.wc);
+          setBlackTime(event.d.bc);
         }
       });
     };
