@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import SVGBracket from "@/components/ui/SVGBracket";
 import BracketGenerator from "@/components/ui/BracketGenerator";
 import { RoundType } from "@/lib/pairing";
+import TournamentBracket from "@/components/sections/tournament-bracket";
 
 export default function Page() {
   const [rounds, setRounds] = useState<RoundType[] | null>(null);
@@ -12,7 +12,7 @@ export default function Page() {
     <div className="p-10 space-y-10">
       <BracketGenerator onGenerate={setRounds} />
 
-      {rounds && <SVGBracket rounds={rounds} />}
+      {rounds && <TournamentBracket rounds={rounds} />}
     </div>
   );
 }
