@@ -1,6 +1,5 @@
 generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
@@ -9,17 +8,73 @@ datasource db {
 }
 
 model User {
-  id    Int     @id @default(autoincrement())
-  email String  @unique
-  name  String?
-  posts Post[]
+  id        String   @id @default(cuid())
+  lichessId String   @unique
+  username  String
+  createdAt DateTime @default(now())
+
+  tournamentsHosted Tournament[]       @relation("HostedTournaments")
+  tournamentMembers TournamentMember[]
 }
 
-model Post {
-  id        Int     @id @default(autoincrement())
-  title     String
-  content   String?
-  published Boolean @default(false)
-  author    User    @relation(fields: [authorId], references: [id])
-  authorId  Int
+model Tournament {
+  id     String @id @default(cuid())
+  name   String
+  hostId String
+  host   User   @relation("HostedTournaments", fields: [hostId], references: [id], onDelete: Cascade)
+
+  rounds  Round[]
+  members TournamentMember[]
+
+  createdAt DateTime @default(now())
+
+  @@index([hostId])
+}
+
+model TournamentMember {
+  id           String @id @default(cuid())
+  tournamentId String
+  userId       String
+  rating       Int
+
+  tournament Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  matchesAsPlayer1 Match[] @relation("Player1Matches")
+  matchesAsPlayer2 Match[] @relation("Player2Matches")
+
+  @@unique([tournamentId, userId])
+  @@index([tournamentId])
+  @@index([userId])
+}
+
+model Round {
+  id           String @id @default(cuid())
+  tournamentId String
+  roundNumber  Int
+
+  tournament Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  matches    Match[]
+
+  @@index([tournamentId])
+}
+
+model Match {
+  id      String @id @default(cuid())
+  roundId String
+
+  player1Id String?
+  player1   TournamentMember? @relation("Player1Matches", fields: [player1Id], references: [id])
+
+  player2Id String?
+  player2   TournamentMember? @relation("Player2Matches", fields: [player2Id], references: [id])
+
+  score1 Int?
+  score2 Int?
+
+  lichessUrl String?
+
+  round Round @relation(fields: [roundId], references: [id], onDelete: Cascade)
+
+  @@index([roundId])
 }
