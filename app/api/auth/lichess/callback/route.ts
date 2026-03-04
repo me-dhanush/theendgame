@@ -18,6 +18,7 @@ export async function GET(req: NextRequest) {
     if (!verifier) {
       return new NextResponse("Missing PKCE verifier", { status: 400 });
     }
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL!;
 
     // Exchange authorization code for access token
     const tokenRes = await fetch("https://lichess.org/api/token", {
@@ -26,8 +27,8 @@ export async function GET(req: NextRequest) {
       body: new URLSearchParams({
         grant_type: "authorization_code",
         code,
-        redirect_uri: "http://localhost:3000/api/auth/lichess/callback",
-        client_id: "http://localhost:3000",
+        redirect_uri: `${baseUrl}/api/auth/lichess/callback`,
+        client_id: baseUrl,
         code_verifier: verifier,
       }),
     });
@@ -64,7 +65,7 @@ export async function GET(req: NextRequest) {
     });
 
     // Create response + session cookie
-    const response = NextResponse.redirect("http://localhost:3000/dashboard");
+    const response = NextResponse.redirect(`${baseUrl}/dashboard`);
 
     response.cookies.set("session_user", user.id, {
       httpOnly: true,
