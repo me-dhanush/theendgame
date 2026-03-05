@@ -1,18 +1,18 @@
-export type PlayerType = {
+export type Entrant = {
   name: string;
   rating: number;
 };
 
-export type MatchType = {
+export type MatchSlot = {
   id: string;
-  players: [PlayerType | null, PlayerType | null];
+  players: [Entrant | null, Entrant | null];
   scores: [number | null, number | null];
   link: string | null;
 };
 
-export type RoundType = {
+export type RoundSlot = {
   id: string;
-  matches: MatchType[];
+  matches: MatchSlot[];
 };
 
 function shuffle<T>(arr: T[]): T[] {
@@ -24,7 +24,7 @@ function shuffle<T>(arr: T[]): T[] {
   return a;
 }
 
-export function pairing(players: PlayerType[]) {
+export function pairing(players: Entrant[]) {
   // ✅ Strong validation (must be power of 2)
   if (!Number.isInteger(Math.log2(players.length))) {
     throw new Error("Players must be a power of 2 for knockout.");
@@ -39,7 +39,7 @@ export function pairing(players: PlayerType[]) {
   const band3 = sorted.slice(bandSize * 2, bandSize * 3);
   const band4 = sorted.slice(bandSize * 3);
 
-  const pairs: [PlayerType, PlayerType][] = [];
+  const pairs: [Entrant, Entrant][] = [];
 
   const b1 = shuffle(band1);
   const b2 = shuffle(band2);
@@ -59,7 +59,7 @@ export function pairing(players: PlayerType[]) {
   return shuffle(pairs);
 }
 
-export function generateRound1Matches(players: PlayerType[]): MatchType[] {
+export function generateRound1Matches(players: Entrant[]): MatchSlot[] {
   const pairs = pairing(players);
 
   return pairs.map(([p1, p2], index) => ({
@@ -70,13 +70,13 @@ export function generateRound1Matches(players: PlayerType[]): MatchType[] {
   }));
 }
 
-export function generateKnockoutBracket(players: PlayerType[]): RoundType[] {
+export function generateKnockoutBracket(players: Entrant[]): RoundSlot[] {
   // ✅ Strong validation (must be power of 2)
   if (!Number.isInteger(Math.log2(players.length))) {
     throw new Error("Players must be a power of 2 for knockout.");
   }
 
-  const rounds: RoundType[] = [];
+  const rounds: RoundSlot[] = [];
 
   // 🔹 Round 1
   let currentMatches = generateRound1Matches(players);
@@ -90,7 +90,7 @@ export function generateKnockoutBracket(players: PlayerType[]): RoundType[] {
 
   // 🔹 Remaining rounds
   while (currentMatches.length > 1) {
-    const nextRoundMatches: MatchType[] = [];
+    const nextRoundMatches: MatchSlot[] = [];
 
     for (let i = 0; i < currentMatches.length; i += 2) {
       nextRoundMatches.push({
@@ -113,7 +113,7 @@ export function generateKnockoutBracket(players: PlayerType[]): RoundType[] {
   return rounds;
 }
 
-export const testRounds: RoundType[] = [
+export const testRounds: RoundSlot[] = [
   {
     id: "round-1",
     matches: [

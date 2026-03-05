@@ -57,6 +57,7 @@ model Round {
   matches    Match[]
 
   @@index([tournamentId])
+  @@unique([tournamentId, roundNumber])
 }
 
 model Match {
@@ -77,4 +78,6 @@ model Match {
   round Round @relation(fields: [roundId], references: [id], onDelete: Cascade)
 
   @@index([roundId])
+  @@index([player1Id])
+  @@index([player2Id])
 }

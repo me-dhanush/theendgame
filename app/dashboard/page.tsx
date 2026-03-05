@@ -1,25 +1,7 @@
-import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
-import { prisma } from "@/lib/prisma";
+import { requireUser } from "@/lib/auth";
 
 export default async function DashboardPage() {
-const cookieStore = await cookies();
-const userId = cookieStore.get("session_user")?.value;
-
-  // 🚪 Not logged in
-  if (!userId) {
-    redirect("/");
-  }
-
-  // 🔎 Fetch user from DB
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-  });
-
-  // If cookie exists but user doesn't (edge case)
-  if (!user) {
-    redirect("/");
-  }
+  const user = await requireUser();
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center gap-6">

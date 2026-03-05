@@ -1,14 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { PlayerType, RoundType, generateKnockoutBracket } from "@/lib/pairing";
+import { Entrant, RoundSlot, generateKnockoutBracket } from "@/lib/pairing";
 
 interface Props {
-  onGenerate: (rounds: RoundType[]) => void;
+  onGenerate: (rounds: RoundSlot[]) => void;
 }
 
 export default function BracketGenerator({ onGenerate }: Props) {
-  const [players, setPlayers] = useState<PlayerType[]>([]);
+  const [players, setPlayers] = useState<Entrant[]>([]);
   const [name, setName] = useState("");
   const [rating, setRating] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -29,6 +29,7 @@ export default function BracketGenerator({ onGenerate }: Props) {
   function handleGenerate() {
     try {
       const rounds = generateKnockoutBracket(players);
+
       setError(null);
       onGenerate(rounds);
     } catch (err: any) {

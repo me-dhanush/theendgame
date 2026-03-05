@@ -1,4 +1,4 @@
-import { RoundType } from "@/lib/pairing";
+import { RoundSlot } from "@/lib/pairing";
 import { BracketLayout } from "./BracketSVG";
 import {
   Popover,
@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 export interface MatchNodesProps {
-  rounds: RoundType[];
+  rounds: RoundSlot[];
   totalHeight: number;
   layout: BracketLayout;
   hoveredMatch: string | null;

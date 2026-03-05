@@ -1,11 +1,11 @@
 "use client";
 
 import React, { useState } from "react";
-import { RoundType } from "@/lib/pairing";
+import { RoundSlot } from "@/lib/pairing";
 import BracketSVG from "../ui/BracketSVG";
 
 interface Props {
-  rounds: RoundType[];
+  rounds: RoundSlot[];
 }
 
 export default function TournamentBracket({ rounds }: Props) {

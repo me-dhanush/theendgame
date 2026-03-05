@@ -1,6 +1,6 @@
 import MatchNodes from "./match-nodes";
 import Connectors from "./connectors";
-import { RoundType } from "@/lib/pairing";
+import { RoundSlot } from "@/lib/pairing";
 
 export interface BracketLayout {
   nodeWidth: number;
@@ -11,7 +11,7 @@ export interface BracketLayout {
 }
 
 export interface BracketSVGProps {
-  rounds: RoundType[];
+  rounds: RoundSlot[];
   hoveredMatch: string | null;
   setHoveredMatch: React.Dispatch<React.SetStateAction<string | null>>;
   layout: BracketLayout;
