@@ -34,18 +34,18 @@ model Tournament {
 model TournamentMember {
   id           String @id @default(cuid())
   tournamentId String
-  userId       String
+  lichessId    String
   rating       Int
 
   tournament Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
-  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user       User       @relation(fields: [lichessId], references: [lichessId], onDelete: Cascade)
 
   matchesAsPlayer1 Match[] @relation("Player1Matches")
   matchesAsPlayer2 Match[] @relation("Player2Matches")
 
-  @@unique([tournamentId, userId])
+  @@unique([tournamentId, lichessId])
   @@index([tournamentId])
-  @@index([userId])
+  @@index([lichessId])
 }
 
 model Round {

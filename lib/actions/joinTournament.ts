@@ -10,7 +10,7 @@ export async function joinTournament(
   return prisma.tournamentMember.create({
     data: {
       tournamentId,
-      userId,
+      lichessId: userId,
       rating,
     },
   });

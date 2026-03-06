@@ -19,7 +19,7 @@ export async function requireUser() {
   const user = await getCurrentUser();
 
   if (!user) {
-  redirect("/api/auth/lichess");
+  redirect("/login");
   }
 
   return user;
