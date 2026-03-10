@@ -14,7 +14,7 @@ export default function LiveFeed() {
 
         {/* Boards Container */}
         <div className="flex flex-wrap justify-center gap-10">
-          <TvBoard mode="bullet" />
+          {/* <TvBoard mode="bullet" /> */}
           <TvBoard mode="blitz" />
           <TvBoard mode="rapid" />
         </div>

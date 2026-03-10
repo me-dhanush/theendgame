@@ -1,4 +1,4 @@
-import { RoundSlot } from "@/lib/pairing";
+import { Prisma } from "@prisma/client";
 import { BracketLayout } from "./BracketSVG";
 import {
   Popover,
@@ -8,8 +8,26 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
+import { updateMatchResult } from "@/lib/actions/updateMatchResult";
+import { useRouter } from "next/navigation";
+
+type RoundWithMatches = Prisma.RoundGetPayload<{
+  include: {
+    matches: {
+      include: {
+        player1: {
+          include: { user: true };
+        };
+        player2: {
+          include: { user: true };
+        };
+      };
+    };
+  };
+}>;
+
 export interface MatchNodesProps {
-  rounds: RoundSlot[];
+  rounds: RoundWithMatches[];
   totalHeight: number;
   layout: BracketLayout;
   hoveredMatch: string | null;
@@ -24,14 +42,32 @@ export default function MatchNodes({
   setHoveredMatch,
 }: MatchNodesProps) {
   const { nodeWidth, nodeHeight, horizontalGap, paddingX } = layout;
-const [editingMatchId, setEditingMatchId] = useState<string | null>(null);
+const router = useRouter();
+const [saving, setSaving] = useState(false);
+const [activeMatchId, setActiveMatchId] = useState<string | null>(null);
+  const [formData, setFormData] = useState({
+    score1: "",
+    score2: "",
+  });
 
-const [formData, setFormData] = useState({
-  player1: "",
-  player2: "",
-  score1: "",
-  score2: "",
-});
+  async function handleSave(matchId: string) {
+    try {
+      setSaving(true);
+
+      await updateMatchResult(
+        matchId,
+        Number(formData.score1),
+        Number(formData.score2),
+      );
+setActiveMatchId(null);
+      router.refresh();
+    } catch (error) {
+      console.error("Failed to update match", error);
+    } finally {
+      setSaving(false);
+    }
+  }
+
   return (
     <>
       {rounds.map((round, roundIndex) => {
@@ -45,20 +81,29 @@ const [formData, setFormData] = useState({
 
           const isHovered = hoveredMatch === match.id;
 
+          const player1 =
+            match.player1?.user?.username ?? match.player1?.lichessId ?? "TBD";
+
+          const player2 =
+            match.player2?.user?.username ?? match.player2?.lichessId ?? "TBD";
+
+          const score1 = match.score1 ?? "-";
+          const score2 = match.score2 ?? "-";
+
           return (
             <Popover
               key={match.id}
+              open={activeMatchId === match.id}
               onOpenChange={(open) => {
                 if (open) {
-                  setEditingMatchId(match.id);
+                  setActiveMatchId(match.id);
+
                   setFormData({
-                    player1: match.players[0]?.name ?? "",
-                    player2: match.players[1]?.name ?? "",
-                    score1: match.scores[0]?.toString() ?? "",
-                    score2: match.scores[1]?.toString() ?? "",
+                    score1: match.score1?.toString() ?? "",
+                    score2: match.score2?.toString() ?? "",
                   });
                 } else {
-                  setEditingMatchId(null);
+                  setActiveMatchId(null);
                 }
               }}
             >
@@ -74,7 +119,7 @@ const [formData, setFormData] = useState({
                 >
                   <div className="w-full h-full">
                     <svg width={nodeWidth} height={nodeHeight}>
-                      {/* your existing svg stays unchanged */}
+                      {/* Player 1 */}
                       <rect
                         x={0}
                         y={0}
@@ -82,13 +127,13 @@ const [formData, setFormData] = useState({
                         height={nodeHeight / 2 - 4}
                         rx="6"
                         className={`transition-all duration-200 ${
-                          hoveredMatch === match.id
+                          isHovered
                             ? "fill-blue-700 dark:fill-blue-300"
                             : "fill-blue-950 dark:fill-blue-100"
                         } stroke-blue-800 dark:stroke-blue-400`}
-                        strokeWidth={hoveredMatch === match.id ? 2.5 : 1.5}
                       />
 
+                      {/* Player 2 */}
                       <rect
                         x={0}
                         y={nodeHeight / 2 + 4}
@@ -96,11 +141,10 @@ const [formData, setFormData] = useState({
                         height={nodeHeight / 2 - 4}
                         rx="6"
                         className={`transition-all duration-200 ${
-                          hoveredMatch === match.id
+                          isHovered
                             ? "fill-blue-700 dark:fill-blue-300"
                             : "fill-blue-950 dark:fill-blue-100"
                         } stroke-blue-800 dark:stroke-blue-400`}
-                        strokeWidth={hoveredMatch === match.id ? 2.5 : 1.5}
                       />
 
                       <text
@@ -109,17 +153,16 @@ const [formData, setFormData] = useState({
                         fontSize="14"
                         className="fill-white dark:fill-blue-950"
                       >
-                        {match.players[0]?.name ?? "TBD"}
+                        {player1}
                       </text>
 
                       <text
                         x={nodeWidth - 20}
                         y={22}
-                        fontSize="14"
                         textAnchor="end"
                         className="fill-white dark:fill-blue-950 font-semibold"
                       >
-                        {match.scores[0] ?? "-"}
+                        {score1}
                       </text>
 
                       <text
@@ -128,17 +171,16 @@ const [formData, setFormData] = useState({
                         fontSize="14"
                         className="fill-white dark:fill-blue-950"
                       >
-                        {match.players[1]?.name ?? "TBD"}
+                        {player2}
                       </text>
 
                       <text
                         x={nodeWidth - 20}
                         y={nodeHeight / 2 + 26}
-                        fontSize="14"
                         textAnchor="end"
                         className="fill-white dark:fill-blue-950 font-semibold"
                       >
-                        {match.scores[1] ?? "-"}
+                        {score2}
                       </text>
                     </svg>
                   </div>
@@ -149,107 +191,105 @@ const [formData, setFormData] = useState({
                 side="right"
                 align="start"
                 sideOffset={14}
-                className="w-96 p-0 overflow-hidden"
+                className="w-80 p-4"
               >
-                <div className="flex flex-col">
+                <div className="space-y-5">
                   {/* Header */}
-                  <div className="px-6 py-4 border-b bg-muted/40">
-                    <h4 className=" font-semibold tracking-tight">
-                      Edit Match
-                    </h4>
-                    <p className="text-sm text-muted-foreground">
-                      Update players and adjust scores
-                    </p>
+                  <div className="text-sm font-semibold text-muted-foreground">
+                    Update Match Score
                   </div>
 
-                  {/* Body */}
-                  <div className="px-6 py-5 space-y-6">
-                    {/* Player 1 Card */}
-                    <div className="rounded-lg border p-4 space-y-3 bg-background">
-                      <div className="flex justify-between items-center">
-                        <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                          Player 1
-                        </span>
+                  {/* Player 1 */}
+                  <div className="flex items-center justify-between rounded-md border p-3">
+                    <span className="font-medium truncate">{player1}</span>
 
-                        <Input
-                          type="number"
-                          className="w-16 text-center font-semibold"
-                          value={formData.score1}
-                          onChange={(e) =>
-                            setFormData((prev) => ({
-                              ...prev,
-                              score1: e.target.value,
-                            }))
-                          }
-                        />
-                      </div>
-
-                      <Input
-                        value={formData.player1}
-                        onChange={(e) =>
-                          setFormData((prev) => ({
-                            ...prev,
-                            player1: e.target.value,
-                          }))
-                        }
-                        placeholder="Enter player name"
-                      />
-                    </div>
-
-                    {/* VS Divider */}
-                    <div className="flex items-center gap-3">
-                      <div className="flex-1 border-t" />
-                      <span className="text-xs text-muted-foreground font-medium">
-                        VS
-                      </span>
-                      <div className="flex-1 border-t" />
-                    </div>
-
-                    {/* Player 2 Card */}
-                    <div className="rounded-lg border p-4 space-y-3 bg-background">
-                      <div className="flex justify-between items-center">
-                        <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                          Player 2
-                        </span>
-
-                        <Input
-                          type="number"
-                          className="w-16 text-center font-semibold"
-                          value={formData.score2}
-                          onChange={(e) =>
-                            setFormData((prev) => ({
-                              ...prev,
-                              score2: e.target.value,
-                            }))
-                          }
-                        />
-                      </div>
-
-                      <Input
-                        value={formData.player2}
-                        onChange={(e) =>
-                          setFormData((prev) => ({
-                            ...prev,
-                            player2: e.target.value,
-                          }))
-                        }
-                        placeholder="Enter player name"
-                      />
-                    </div>
+                    <Input
+                      type="number"
+                      step="0.5"
+                      value={formData.score1}
+                      className="w-20 text-center font-semibold"
+                      onChange={(e) =>
+                        setFormData((p) => ({
+                          ...p,
+                          score1: e.target.value,
+                        }))
+                      }
+                    />
                   </div>
 
-                  {/* Footer */}
-                  <div className="px-6 py-4 border-t bg-muted/30 flex justify-end">
+                  {/* VS Divider */}
+                  <div className="text-center text-xs text-muted-foreground font-medium">
+                    VS
+                  </div>
+
+                  {/* Player 2 */}
+                  <div className="flex items-center justify-between rounded-md border p-3">
+                    <span className="font-medium truncate">{player2}</span>
+
+                    <Input
+                      type="number"
+                      step="0.5"
+                      value={formData.score2}
+                      className="w-20 text-center font-semibold"
+                      onChange={(e) =>
+                        setFormData((p) => ({
+                          ...p,
+                          score2: e.target.value,
+                        }))
+                      }
+                    />
+                  </div>
+                  {/* Quick result buttons */}
+                  <div className="flex justify-center gap-2">
                     <Button
                       size="sm"
-                      className="px-6"
-                      onClick={() => {
-                        console.log("Updated Match:", match.id, formData);
-                      }}
+                      className="bg-muted hover:bg-blue-100 dark:hover:bg-blue-900/30 text-foreground"
+                      onClick={() =>
+                        setFormData({
+                          score1: "1",
+                          score2: "0",
+                        })
+                      }
                     >
-                      Save Changes
+                      1–0
+                    </Button>
+
+                    <Button
+                      size="sm"
+                      className="bg-muted hover:bg-muted/70 text-foreground"
+                      onClick={() =>
+                        setFormData({
+                          score1: "0.5",
+                          score2: "0.5",
+                        })
+                      }
+                    >
+                      ½–½
+                    </Button>
+
+                    <Button
+                      size="sm"
+                      className="bg-muted hover:bg-blue-100 dark:hover:bg-blue-900/30 text-foreground"
+                      onClick={() =>
+                        setFormData({
+                          score1: "0",
+                          score2: "1",
+                        })
+                      }
+                    >
+                      0–1
                     </Button>
                   </div>
+                  {/* Save button */}
+                  <Button
+                    className="w-full mt-2"
+                    disabled={
+                      saving || formData.score1 === "" || formData.score2 === ""
+                    }
+                    onClick={() => handleSave(match.id)}
+                  >
+                    {saving ? "Saving..." : "Save Score"}
+                  </Button>
                 </div>
               </PopoverContent>
             </Popover>

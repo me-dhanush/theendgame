@@ -11,7 +11,10 @@ export async function generateRound1(
 
   const pairs = pairing(members);
 
-  const round = await prisma.round.create({
+  /*
+  ROUND 1
+  */
+  const round1 = await prisma.round.create({
     data: {
       tournamentId,
       roundNumber: 1,
@@ -19,7 +22,7 @@ export async function generateRound1(
   });
 
   const matches = pairs.map(([p1, p2]) => ({
-    roundId: round.id,
+    roundId: round1.id,
     player1Id: p1.id,
     player2Id: p2.id,
   }));
@@ -28,7 +31,36 @@ export async function generateRound1(
     data: matches,
   });
 
-  return round;
+  /*
+  GENERATE FUTURE ROUNDS (EMPTY MATCHES)
+  */
+  const totalPlayers = members.length;
+  const totalRounds = Math.log2(totalPlayers);
+
+  let matchesInRound = pairs.length;
+
+  for (let r = 2; r <= totalRounds; r++) {
+    const round = await prisma.round.create({
+      data: {
+        tournamentId,
+        roundNumber: r,
+      },
+    });
+
+    matchesInRound = matchesInRound / 2;
+
+    const emptyMatches = Array.from({ length: matchesInRound }).map(() => ({
+      roundId: round.id,
+      player1Id: null,
+      player2Id: null,
+    }));
+
+    await prisma.match.createMany({
+      data: emptyMatches,
+    });
+  }
+
+  return round1;
 }
 
 function shuffle<T>(arr: T[]): T[] {

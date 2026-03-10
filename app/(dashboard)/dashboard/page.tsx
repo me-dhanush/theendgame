@@ -1,54 +1,61 @@
-import { requireUser } from "@/lib/auth";
+import { getTournaments } from "@/lib/actions/getTournaments";
 import Link from "next/link";
-import { InteractiveGridPattern } from "@/components/ui/interactive-grid-pattern";
 
-export default async function DashboardPage() {
-  const user = await requireUser();
+export default async function TournamentsPage() {
+  const tournaments = await getTournaments();
 
   return (
-    <div className="relative min-h-screen w-full bg-background overflow-hidden">
-      {/* Background Grid */}
-      <InteractiveGridPattern
-        className="absolute inset-0 opacity-30"
-        width={60}
-        height={60}
-        squares={[100, 100]}
-      />
+    <main className="max-w-6xl mx-auto px-6 py-10">
+      <h1 className="text-4xl font-bold mb-8 tracking-tight">
+        All Tournaments
+      </h1>
 
-      <div className="relative z-10 flex flex-col items-center justify-center min-h-screen px-6 text-center">
-        {/* Welcome */}
-        <h1 className="text-4xl md:text-5xl font-extrabold text-primary">
-          Welcome, {user.username} ♟️
-        </h1>
+      {tournaments.length === 0 && (
+        <p className="text-gray-500 text-lg">No tournaments yet.</p>
+      )}
 
-        <p className="mt-4 text-lg text-muted-foreground max-w-xl">
-          Manage your tournaments, generate brackets, and control the arena.
-        </p>
-
-        {/* Actions */}
-        <div className="mt-10 flex flex-wrap justify-center gap-6">
+      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        {tournaments.map((tournament) => (
           <Link
-            href="/dashboard/create-tournament"
-            className="px-8 py-4 bg-secondary text-white text-lg font-semibold rounded-md hover:opacity-90 transition"
+            key={tournament.id}
+            href={`/tournament/${tournament.id}`}
+            className="group border rounded-xl p-5 bg-white shadow-sm hover:shadow-md transition-all duration-200"
           >
-            Create Tournament
-          </Link>
+            {/* Header */}
+            <div className="mb-3">
+              <h2 className="text-xl font-semibold group-hover:text-black transition">
+                {tournament.name}
+              </h2>
 
-          <Link
-            href="/dashboard/tournaments"
-            className="px-8 py-4 border border-border text-lg font-semibold rounded-md hover:bg-accent transition"
-          >
-            My Tournaments
-          </Link>
-        </div>
+              <p className="text-sm text-gray-500 mt-1">
+                Hosted by {tournament.host?.username || "Unknown"}
+              </p>
+            </div>
 
-        {/* Logout */}
-        <form action="/api/logout" method="POST" className="mt-12">
-          <button className="text-sm text-muted-foreground hover:text-primary transition">
-            Logout
-          </button>
-        </form>
+            {/* Stats */}
+            <div className="flex items-center gap-6 text-sm text-gray-600 mt-4">
+              <div className="flex flex-col">
+                <span className="font-medium text-black">
+                  {tournament.members.length}
+                </span>
+                <span className="text-xs text-gray-500">Players</span>
+              </div>
+
+              <div className="flex flex-col">
+                <span className="font-medium text-black">
+                  {tournament.rounds.length}
+                </span>
+                <span className="text-xs text-gray-500">Rounds</span>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <p className="text-xs text-gray-400 mt-5">
+              Created {new Date(tournament.createdAt).toLocaleDateString()}
+            </p>
+          </Link>
+        ))}
       </div>
-    </div>
+    </main>
   );
 }
