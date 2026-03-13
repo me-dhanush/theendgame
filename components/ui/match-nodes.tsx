@@ -1,5 +1,5 @@
 import { Prisma } from "@prisma/client";
-import { BracketLayout } from "./BracketSVG";
+import { BracketLayout, RoundWithMatches } from "./BracketSVG";
 import {
   Popover,
   PopoverTrigger,
@@ -11,20 +11,7 @@ import { useState } from "react";
 import { updateMatchResult } from "@/lib/actions/updateMatchResult";
 import { useRouter } from "next/navigation";
 
-type RoundWithMatches = Prisma.RoundGetPayload<{
-  include: {
-    matches: {
-      include: {
-        player1: {
-          include: { user: true };
-        };
-        player2: {
-          include: { user: true };
-        };
-      };
-    };
-  };
-}>;
+
 
 export interface MatchNodesProps {
   rounds: RoundWithMatches[];

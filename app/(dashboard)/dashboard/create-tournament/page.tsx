@@ -1,18 +1,14 @@
 "use client";
 
-import { useState } from "react";
-import BracketGenerator from "@/components/ui/BracketGenerator";
-import { RoundSlot } from "@/lib/pairing";
-import TournamentBracket from "@/components/sections/tournament-bracket";
+import { useRouter } from "next/navigation";
+import CreateTournamentForm from "@/components/ui/CreateTournamentForm";
 
 export default function Page() {
-  const [rounds, setRounds] = useState<RoundSlot[] | null>(null);
+  const router = useRouter();
 
-  return (
-    <div className="p-10 space-y-10">
-      <BracketGenerator onGenerate={setRounds} />
+  function handleGenerate(tournamentId: string) {
+    router.push(`/tournament/${tournamentId}`);
+  }
 
-      {rounds && <TournamentBracket rounds={rounds} />}
-    </div>
-  );
+  return <CreateTournamentForm onGenerate={handleGenerate} />;
 }

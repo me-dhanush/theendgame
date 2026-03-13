@@ -1,7 +1,21 @@
 import MatchNodes from "./match-nodes";
 import Connectors from "./connectors";
-import { RoundSlot } from "@/lib/pairing";
+import { Prisma } from "@prisma/client";
 
+export type RoundWithMatches = Prisma.RoundGetPayload<{
+  include: {
+    matches: {
+      include: {
+        player1: {
+          include: { user: true };
+        };
+        player2: {
+          include: { user: true };
+        };
+      };
+    };
+  };
+}>;
 export interface BracketLayout {
   nodeWidth: number;
   nodeHeight: number;
@@ -11,7 +25,7 @@ export interface BracketLayout {
 }
 
 export interface BracketSVGProps {
-  rounds: RoundSlot[];
+  rounds: RoundWithMatches[];
   hoveredMatch: string | null;
   setHoveredMatch: React.Dispatch<React.SetStateAction<string | null>>;
   layout: BracketLayout;

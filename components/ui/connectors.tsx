@@ -1,8 +1,7 @@
-import { RoundSlot } from "@/lib/pairing";
-import { BracketLayout } from "./BracketSVG";
+import { BracketLayout, RoundWithMatches } from "./BracketSVG";
 
 export interface ConnectorsProps {
-  rounds: RoundSlot[];
+  rounds: RoundWithMatches[];
   totalHeight: number;
   layout: BracketLayout;
   hoveredMatch: string | null;

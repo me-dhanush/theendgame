@@ -12,8 +12,8 @@ export default function home () {
       <HeroSection />
       <Separator />
       <LiveFeed />
-      <Separator />
-      <TournamentBracket rounds={testRounds} />
+      {/* <Separator />
+      <TournamentBracket rounds={testRounds} /> */}
     </div>
   );
 }
