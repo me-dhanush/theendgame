@@ -12,7 +12,7 @@ model User {
   lichessId String   @unique
   username  String
   createdAt DateTime @default(now())
-
+  lichessToken String?
   tournamentsHosted Tournament[]       @relation("HostedTournaments")
   tournamentMembers TournamentMember[]
 }
@@ -25,6 +25,8 @@ model Tournament {
 
   rounds  Round[]
   members TournamentMember[]
+
+  status TournamentStatus @default(pending)
 
   createdAt DateTime @default(now())
 
@@ -73,11 +75,26 @@ model Match {
   score1 Int?
   score2 Int?
 
-  lichessUrl String?
+  status MatchStatus @default(pending)
+
+  lichessGameId String?
 
   round Round @relation(fields: [roundId], references: [id], onDelete: Cascade)
 
   @@index([roundId])
   @@index([player1Id])
   @@index([player2Id])
+}
+
+enum TournamentStatus {
+  pending
+  started
+  finished
+  cancelled
+}
+
+enum MatchStatus {
+  pending
+  started
+  finished
 }

@@ -57,10 +57,12 @@ export async function GET(req: NextRequest) {
       where: { lichessId: profile.id },
       update: {
         username: profile.username,
+        lichessToken: tokenData.access_token,
       },
       create: {
         lichessId: profile.id,
         username: profile.username,
+        lichessToken: tokenData.access_token,
       },
     });
 

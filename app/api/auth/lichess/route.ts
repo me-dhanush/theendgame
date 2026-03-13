@@ -24,8 +24,9 @@ export async function GET() {
   url.searchParams.set("redirect_uri", `${baseUrl}/api/auth/lichess/callback`);
   url.searchParams.set("code_challenge_method", "S256");
   url.searchParams.set("code_challenge", codeChallenge);
-  url.searchParams.set("scope", "email:read");
+  url.searchParams.set("scope", "challenge:write email:read");
   url.searchParams.set("state", state);
+  url.searchParams.set("prompt", "consent");
 
   const response = NextResponse.redirect(url);
 
