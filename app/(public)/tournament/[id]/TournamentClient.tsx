@@ -155,13 +155,26 @@ export default function TournamentClient({ tournament }: Props) {
               {rounds[selectedRound]?.matches.map((match: any) => (
                 <div
                   key={match.id}
-                  className="flex justify-between px-6 py-3 border-b border-border last:border-none hover:bg-muted/40 transition"
+                  className="flex justify-between items-center px-6 py-3 border-b border-border last:border-none hover:bg-muted/40 transition"
                 >
-                  <span>{match.playerA?.username ?? "TBD"}</span>
+                  <div className="flex items-center gap-3">
+                    <span>{match.player1?.user?.username ?? "TBD"}</span>
 
-                  <span className="opacity-60">vs</span>
+                    <span className="opacity-60">vs</span>
 
-                  <span>{match.playerB?.username ?? "TBD"}</span>
+                    <span>{match.player2?.user?.username ?? "TBD"}</span>
+                  </div>
+
+                  {match.link && (
+                    <a
+                      href={match.link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs text-primary hover:underline opacity-80 hover:opacity-100 transition"
+                    >
+                      match
+                    </a>
+                  )}
                 </div>
               ))}
             </div>

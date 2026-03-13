@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { createTournament } from "@/lib/actions/createTournament";
+import { useRouter } from "next/navigation";
 
 interface Player {
   name: string;
@@ -17,14 +18,49 @@ function nextPowerOfTwo(n: number) {
 }
 
 export default function CreateTournamentForm({ onGenerate }: Props) {
+const users = [
+  { name: "magnuscarlsen", rating: 2830 },
+  { name: "hikaru", rating: 2780 },
+  { name: "firouzja", rating: 2760 },
+  { name: "dingliren", rating: 2750 },
+  { name: "nepomniachtchi", rating: 2740 },
+  { name: "gukesh", rating: 2730 },
+  { name: "praggnanandhaa", rating: 2720 },
+  { name: "vidit", rating: 2710 },
+  { name: "anishgiri", rating: 2700 },
+  { name: "wesleyso", rating: 2690 },
+  { name: "levonaronian", rating: 2680 },
+  { name: "fabianocaruana", rating: 2670 },
+  { name: "teimourradjabov", rating: 2660 },
+  { name: "sergeykarjakin", rating: 2650 },
+  { name: "richardrapport", rating: 2640 },
+  { name: "duda", rating: 2630 },
+
+  { name: "player17", rating: 2400 },
+  { name: "player18", rating: 2390 },
+  { name: "player19", rating: 2380 },
+  { name: "player20", rating: 2370 },
+  { name: "player21", rating: 2360 },
+  { name: "player22", rating: 2350 },
+  { name: "player23", rating: 2340 },
+  { name: "player24", rating: 2330 },
+  { name: "player25", rating: 2320 },
+  { name: "player26", rating: 2310 },
+  { name: "player27", rating: 2300 },
+  { name: "player28", rating: 2290 },
+  { name: "player29", rating: 2280 },
+  { name: "player30", rating: 2270 },
+  { name: "player31", rating: 2260 },
+  { name: "player32", rating: 2250 },
+];
   const [tournamentName, setTournamentName] = useState("");
-  const [players, setPlayers] = useState<Player[]>([]);
+  const [players, setPlayers] = useState<Player[]>(users);
   const [username, setUsername] = useState("");
   const [rating, setRating] = useState("");
 
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-
+const router = useRouter();
   const sortedPlayers = [...players].sort((a, b) => b.rating - a.rating);
 
   const isPowerOfTwo =
@@ -97,7 +133,7 @@ return (
               onChange={(e) => setTournamentName(e.target.value)}
               className="w-full px-4 py-3 rounded-md
   border border-zinc-300 dark:border-zinc-700
-  bg-zinc-50 dark:bg-zinc-900
+  bg-white dark:bg-zinc-900
   focus:outline-none focus:border-blue-500
   transition-colors"
             />
@@ -119,7 +155,7 @@ return (
               onChange={(e) => setUsername(e.target.value)}
               className="flex-1 px-4 py-3 rounded-md
   border border-zinc-300 dark:border-zinc-700
-  bg-zinc-50 dark:bg-zinc-900
+  bg-white dark:bg-zinc-900
   focus:outline-none focus:border-blue-500"
             />
 
@@ -130,7 +166,7 @@ return (
               onChange={(e) => setRating(e.target.value)}
               className="w-32 px-4 py-3 rounded-md
   border border-zinc-300 dark:border-zinc-700
-  bg-zinc-50 dark:bg-zinc-900
+  bg-white dark:bg-zinc-900
   focus:outline-none focus:border-blue-500"
             />
 
@@ -214,14 +250,33 @@ return (
         {/* Error */}
         {error && <div className="text-red-500 text-sm">{error}</div>}
 
-        {/* Submit */}
-        <div className="pt-6 border-t">
+        <div className="pt-8 border-t flex items-center justify-between">
+          {/* Left side navigation */}
+          <div className="flex gap-3">
+            <button
+              type="button"
+              onClick={() => router.back()}
+              className="px-5 py-2 border border-zinc-300 rounded-md hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-800"
+            >
+              Go Back
+            </button>
+
+            <button
+              type="button"
+              onClick={() => router.push("/")}
+              className="px-5 py-2 border border-zinc-300 rounded-md hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-800"
+            >
+              Home
+            </button>
+          </div>
+
+          {/* Right side submit */}
           <button
             disabled={!isPowerOfTwo || loading}
             onClick={handleCreate}
-            className="px-8 py-3 bg-green-600 text-white rounded-lg font-semibold disabled:opacity-40"
+            className="px-8 py-3 bg-green-600 text-white rounded-md font-semibold hover:bg-green-700 disabled:opacity-40"
           >
-            {loading ? "Creating Tournament..." : "Create Tournament"}
+            {loading ? "Creating..." : "Create Tournament"}
           </button>
         </div>
       </div>
