@@ -1,29 +1,58 @@
 import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
 
 export async function POST() {
-  const tokenWhite = process.env.LICHESS_TOKEN!;
-  const tokenBlack = process.env.LICHESS_SECOND!;
+  try {
+    const users = await prisma.user.findMany({
+      where: {
+        lichessToken: { not: null },
+      },
+      take: 2,
+    });
 
-  const body = new URLSearchParams({
-    players: `${tokenWhite}:${tokenBlack}`,
-    "clock.limit": "300", // 5 minutes
-    "clock.increment": "3", // +3 seconds
-    rated: "false",
-    variant: "standard",
-    rules: "noAbort,noRematch,noGiveTime,noEarlyDraw",
-    message: "Your tournament game vs {opponent} is ready!\n\nClick the link to start your match:\n{game}\n\nGood luck and enjoy the game!",
-  });
+    if (users.length < 2) {
+      return NextResponse.json(
+        { error: "Need at least 2 users with Lichess tokens" },
+        { status: 400 },
+      );
+    }
 
-  const res = await fetch("https://lichess.org/api/bulk-pairing", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded",
-      Authorization: `Bearer ${tokenWhite}`,
-    },
-    body,
-  });
+    const white = users[0];
+    const black = users[1];
 
-  const data = await res.json();
+    const body = new URLSearchParams({
+      players: `${white.lichessToken}:${black.lichessToken}`,
+      "clock.limit": "300",
+      "clock.increment": "3",
+      rated: "false",
+      variant: "standard",
+      rules: "noRematch,noGiveTime,noEarlyDraw",
+      message:
+        "♟ Tournament Match\n\nYour game vs {opponent} is ready!\n\nClick the link to start your match:\n{game}",
+    });
 
-  return NextResponse.json(data);
+    const res = await fetch("https://lichess.org/api/bulk-pairing", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${process.env.LICHESS_TOKEN}`,
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body,
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      return NextResponse.json({ error: data.error }, { status: res.status });
+    }
+
+    return NextResponse.json({
+      white: white.username,
+      black: black.username,
+      lichessGame: `https://lichess.org/${data.games[0].id}`,
+    });
+  } catch (error) {
+    console.error("Match creation failed:", error);
+    return NextResponse.json({ error: "Internal error" }, { status: 500 });
+  }
 }

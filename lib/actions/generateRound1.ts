@@ -31,6 +31,70 @@ export async function generateRound1(
     data: matches,
   });
 
+const createdMatches = await prisma.match.findMany({
+  where: { roundId: round1.id },
+  orderBy: { id: "asc" },
+  include: {
+    player1: {
+      include: {
+        user: true,
+      },
+    },
+    player2: {
+      include: {
+        user: true,
+      },
+    },
+  },
+});
+
+const players = createdMatches
+  .map((m) => {
+    if (!m.player1?.user?.lichessToken || !m.player2?.user?.lichessToken) {
+      throw new Error("Missing lichess OAuth token");
+    }
+
+    return `${m.player1.user.lichessToken}:${m.player2.user.lichessToken}`;
+  })
+  .join(",");
+
+  // call lichess bulk pairing
+  const body = new URLSearchParams({
+    players,
+    "clock.limit": "300",
+    "clock.increment": "3",
+    rated: "false",
+    variant: "standard",
+    rules: "noRematch,noGiveTime,noEarlyDraw",
+    message:
+      "♟ Tournament Match\n\nYour game vs {opponent} is ready!\n\nClick the link to start your match:\n{game}",
+  });
+
+  const res = await fetch("https://lichess.org/api/bulk-pairing", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${process.env.LICHESS_TOKEN}`,
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+    body,
+  });
+
+  if (!res.ok) {
+    throw new Error(`Lichess API failed: ${await res.text()}`);
+  }
+
+  const data = await res.json();
+
+  // save lichess game ids
+await Promise.all(
+  data.games.map((game: any, i: number) =>
+    prisma.match.update({
+      where: { id: createdMatches[i].id },
+      data: { lichessGameId: game.id },
+    }),
+  ),
+);
+
   /*
   GENERATE FUTURE ROUNDS (EMPTY MATCHES)
   */

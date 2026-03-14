@@ -6,14 +6,14 @@ export async function updateMatchResult(
   matchId: string,
   score1: number,
   score2: number,
-  lichessUrl?: string,
+  lichessGameId?: string,
 ) {
   return prisma.match.update({
     where: { id: matchId },
     data: {
       score1,
       score2,
-      lichessUrl,
+      lichessGameId,
     },
   });
 }
