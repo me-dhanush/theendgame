@@ -54,7 +54,7 @@ model Round {
   id           String @id @default(cuid())
   tournamentId String
   roundNumber  Int
-
+  bulkPairingId String?
   tournament Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
   matches    Match[]
 

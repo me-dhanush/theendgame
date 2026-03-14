@@ -19,39 +19,10 @@ function nextPowerOfTwo(n: number) {
 
 export default function CreateTournamentForm({ onGenerate }: Props) {
 const users = [
-  { name: "magnuscarlsen", rating: 2830 },
-  { name: "hikaru", rating: 2780 },
-  { name: "firouzja", rating: 2760 },
-  { name: "dingliren", rating: 2750 },
-  { name: "nepomniachtchi", rating: 2740 },
-  { name: "gukesh", rating: 2730 },
-  { name: "praggnanandhaa", rating: 2720 },
-  { name: "vidit", rating: 2710 },
-  { name: "anishgiri", rating: 2700 },
-  { name: "wesleyso", rating: 2690 },
-  { name: "levonaronian", rating: 2680 },
-  { name: "fabianocaruana", rating: 2670 },
-  { name: "teimourradjabov", rating: 2660 },
-  { name: "sergeykarjakin", rating: 2650 },
-  { name: "richardrapport", rating: 2640 },
-  { name: "duda", rating: 2630 },
-
-  { name: "player17", rating: 2400 },
-  { name: "player18", rating: 2390 },
-  { name: "player19", rating: 2380 },
-  { name: "player20", rating: 2370 },
-  { name: "player21", rating: 2360 },
-  { name: "player22", rating: 2350 },
-  { name: "player23", rating: 2340 },
-  { name: "player24", rating: 2330 },
-  { name: "player25", rating: 2320 },
-  { name: "player26", rating: 2310 },
-  { name: "player27", rating: 2300 },
-  { name: "player28", rating: 2290 },
-  { name: "player29", rating: 2280 },
-  { name: "player30", rating: 2270 },
-  { name: "player31", rating: 2260 },
-  { name: "player32", rating: 2250 },
+  { name: "dha-nush", rating: 2100 },
+  { name: "dhanush-me", rating: 1500 },
+  { name: "shuspriggan", rating: 1800 },
+  { name: "theendgamechess", rating: 1500 },
 ];
   const [tournamentName, setTournamentName] = useState("");
   const [players, setPlayers] = useState<Player[]>(users);

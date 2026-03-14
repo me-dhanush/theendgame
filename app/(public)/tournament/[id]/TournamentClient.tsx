@@ -155,24 +155,43 @@ export default function TournamentClient({ tournament }: Props) {
               {rounds[selectedRound]?.matches.map((match: any) => (
                 <div
                   key={match.id}
-                  className="flex justify-between items-center px-6 py-3 border-b border-border last:border-none hover:bg-muted/40 transition"
+                  className="flex items-center justify-between px-6 py-4 border-b border-border last:border-none hover:bg-muted/40 transition"
                 >
-                  <div className="flex items-center gap-3">
-                    <span>{match.player1?.user?.username ?? "TBD"}</span>
+                  {/* Players + Score */}
+                  <div className="flex items-center gap-6">
+                    {/* Player 1 */}
+                    <span className="font-medium">
+                      {match.player1?.user?.username ?? "TBD"}
+                    </span>
 
-                    <span className="opacity-60">vs</span>
+                    {/* Score + Status */}
+                    <div className="flex items-center gap-3 px-3 py-1 rounded-md bg-background border border-border text-sm">
+                      <span className="font-semibold">{match.score1 ?? 0}</span>
 
-                    <span>{match.player2?.user?.username ?? "TBD"}</span>
+                      <span className="opacity-60">-</span>
+
+                      <span className="font-semibold">{match.score2 ?? 0}</span>
+
+                      <span className="ml-2 text-xs opacity-60">
+                        {match.status ?? "pending"}
+                      </span>
+                    </div>
+
+                    {/* Player 2 */}
+                    <span className="font-medium">
+                      {match.player2?.user?.username ?? "TBD"}
+                    </span>
                   </div>
 
-                  {match.link && (
+                  {/* Play Button */}
+                  {match.lichessGameId && (
                     <a
-                      href={match.link}
+                      href={`https://lichess.org/${match.lichessGameId}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-xs text-primary hover:underline opacity-80 hover:opacity-100 transition"
+                      className="px-3 py-1 text-xs bg-green-500/10 text-green-400 rounded-md hover:bg-green-500/20 transition"
                     >
-                      match
+                      Open
                     </a>
                   )}
                 </div>

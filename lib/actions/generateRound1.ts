@@ -85,14 +85,35 @@ const players = createdMatches
 
   const data = await res.json();
 
+  await prisma.round.update({
+    where: { id: round1.id },
+    data: {
+      bulkPairingId: data.id,
+    },
+  });
   // save lichess game ids
 await Promise.all(
-  data.games.map((game: any, i: number) =>
-    prisma.match.update({
-      where: { id: createdMatches[i].id },
-      data: { lichessGameId: game.id },
-    }),
-  ),
+  data.games.map(async (game: any) => {
+    const result = await prisma.match.updateMany({
+      where: {
+        OR: [
+          {
+            player1: { user: { lichessId: game.white } },
+            player2: { user: { lichessId: game.black } },
+          },
+          {
+            player1: { user: { lichessId: game.black } },
+            player2: { user: { lichessId: game.white } },
+          },
+        ],
+      },
+      data: {
+        lichessGameId: game.id,
+      },
+    });
+
+    console.log("UPDATE RESULT:", result);
+  }),
 );
 
   /*
