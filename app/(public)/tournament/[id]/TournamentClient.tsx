@@ -151,52 +151,48 @@ export default function TournamentClient({ tournament }: Props) {
             </div>
 
             {/* ROUND MATCHES */}
-            <div className="border border-border bg-muted/20 rounded-xl overflow-hidden">
-              {rounds[selectedRound]?.matches.map((match: any) => (
-                <div
-                  key={match.id}
-                  className="flex items-center justify-between px-6 py-4 border-b border-border last:border-none hover:bg-muted/40 transition"
-                >
-                  {/* Players + Score */}
-                  <div className="flex items-center gap-6">
-                    {/* Player 1 */}
-                    <span className="font-medium">
-                      {match.player1?.user?.username ?? "TBD"}
-                    </span>
+<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+  {rounds[selectedRound]?.matches.map((match: any) => (
+    <div
+      key={match.id}
+      className="border border-border rounded-xl p-5 bg-muted/20 hover:bg-muted/40 transition"
+    >
+      {/* MATCH GRID */}
+      <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3 text-lg font-medium">
 
-                    {/* Score + Status */}
-                    <div className="flex items-center gap-3 px-3 py-1 rounded-md bg-background border border-border text-sm">
-                      <span className="font-semibold">{match.score1 ?? 0}</span>
+        {/* Player 1 */}
+        <span className="text-right truncate">
+          {match.player1?.user?.username ?? "TBD"}
+        </span>
 
-                      <span className="opacity-60">-</span>
+        {/* Score */}
+        <span className="text-xl font-bold text-center">
+          {match.score1 ?? 0} - {match.score2 ?? 0}
+        </span>
 
-                      <span className="font-semibold">{match.score2 ?? 0}</span>
+        {/* Player 2 */}
+        <span className="text-left truncate">
+          {match.player2?.user?.username ?? "TBD"}
+        </span>
 
-                      <span className="ml-2 text-xs opacity-60">
-                        {match.status ?? "pending"}
-                      </span>
-                    </div>
+      </div>
 
-                    {/* Player 2 */}
-                    <span className="font-medium">
-                      {match.player2?.user?.username ?? "TBD"}
-                    </span>
-                  </div>
-
-                  {/* Play Button */}
-                  {match.lichessGameId && (
-                    <a
-                      href={`https://lichess.org/${match.lichessGameId}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="px-3 py-1 text-xs bg-green-500/10 text-green-400 rounded-md hover:bg-green-500/20 transition"
-                    >
-                      Open
-                    </a>
-                  )}
-                </div>
-              ))}
-            </div>
+      {/* BUTTON */}
+      {match.lichessGameId && (
+        <div className="mt-4 flex justify-center">
+          <a
+            href={`https://lichess.org/${match.lichessGameId}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-sm px-4 py-1.5 rounded-md bg-primary/10 text-primary hover:bg-primary/20 transition"
+          >
+            View Game
+          </a>
+        </div>
+      )}
+    </div>
+  ))}
+</div>
           </div>
         )}
       </div>

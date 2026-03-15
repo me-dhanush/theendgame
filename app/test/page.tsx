@@ -1,28 +1,73 @@
 "use client";
 
-export default function TestPage() {
-async function createGame() {
-  const res = await fetch("/api/create-game", {
-    method: "POST",
-  });
+import { useEffect, useState } from "react";
+import { readNdjsonStream } from "@/lib/readNdjsonStream";
 
-  const data = await res.json();
+type Game = any; // keep raw API type
 
-  console.log(data);
+export default function Page() {
+  const [games, setGames] = useState<Game[]>([]);
 
-  if (data.lichessGame) {
-    window.open(data.lichessGame, "_blank");
-  }
-}
+  useEffect(() => {
+    async function loadGames() {
+      const res = await fetch("/api/bulk-games?bulkId=2UGcKNVg");
+
+      await readNdjsonStream<Game>(res, (game) => {
+        setGames((prev) => [...prev, game]);
+      });
+    }
+
+    loadGames();
+  }, []);
 
   return (
-    <div className="p-10">
-      <button
-        onClick={createGame}
-        className="bg-black text-white px-4 py-2 rounded"
-      >
-        Create Test Game
-      </button>
+    <div style={{ padding: 40 }}>
+      <h1>Bulk Pairing Games</h1>
+
+      {games.map((g) => {
+        const white = g.players?.white?.user?.name;
+        const black = g.players?.black?.user?.name;
+
+        const whiteRating = g.players?.white?.rating;
+        const blackRating = g.players?.black?.rating;
+
+        const winner =
+          g.winner === "white"
+            ? white
+            : g.winner === "black"
+              ? black
+              : "Draw / Ongoing";
+
+        const timeControl = g.clock
+          ? `${g.clock.initial / 60}+${g.clock.increment}`
+          : "Unknown";
+
+        return (
+          <div
+            key={g.id}
+            style={{
+              border: "1px solid #ccc",
+              padding: 20,
+              marginBottom: 20,
+              borderRadius: 8,
+            }}
+          >
+            <h3>
+              {white} ({whiteRating}) vs {black} ({blackRating})
+            </h3>
+
+            <p>Status: {g.status}</p>
+
+            <p>Winner: {winner}</p>
+
+            <p>Time Control: {timeControl}</p>
+
+            <a href={`https://lichess.org/${g.id}`} target="_blank">
+              View Game
+            </a>
+          </div>
+        );
+      })}
     </div>
   );
 }

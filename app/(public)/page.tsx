@@ -10,8 +10,8 @@ export default function home () {
     <div>
       {" "}
       <HeroSection />
-      <Separator />
-      <LiveFeed />
+      {/* <Separator />
+      <LiveFeed /> */}
       {/* <Separator />
       <TournamentBracket rounds={testRounds} /> */}
     </div>

@@ -1,4 +1,5 @@
 import { PrismaClient, TournamentMember } from "@prisma/client";
+import { startGameStream } from "./lichessStream";
 
 export async function generateRound1(
   prisma: PrismaClient,
@@ -14,6 +15,7 @@ export async function generateRound1(
   const tournament = await prisma.tournament.findUnique({
     where: { id: tournamentId },
     select: {
+      name: true,
       timeMinutes: true,
       timeIncrement: true,
       rated: true,
@@ -44,44 +46,47 @@ export async function generateRound1(
     data: matches,
   });
 
-const createdMatches = await prisma.match.findMany({
-  where: { roundId: round1.id },
-  orderBy: { id: "asc" },
-  include: {
-    player1: {
-      include: {
-        user: true,
+  const createdMatches = await prisma.match.findMany({
+    where: { roundId: round1.id },
+    orderBy: { id: "asc" },
+    include: {
+      player1: {
+        include: {
+          user: true,
+        },
+      },
+      player2: {
+        include: {
+          user: true,
+        },
       },
     },
-    player2: {
-      include: {
-        user: true,
-      },
-    },
-  },
-});
+  });
 
-const players = createdMatches
-  .map((m) => {
-    if (!m.player1?.user?.lichessToken || !m.player2?.user?.lichessToken) {
-      throw new Error("Missing lichess OAuth token");
-    }
+  const players = createdMatches
+    .map((m) => {
+      if (!m.player1?.user?.lichessToken || !m.player2?.user?.lichessToken) {
+        throw new Error("Missing lichess OAuth token");
+      }
 
-    return `${m.player1.user.lichessToken}:${m.player2.user.lichessToken}`;
-  })
-  .join(",");
+      return `${m.player1.user.lichessToken}:${m.player2.user.lichessToken}`;
+    })
+    .join(",");
 
   // call lichess bulk pairing
-const body = new URLSearchParams({
-  players,
-  "clock.limit": String(tournament.timeMinutes * 60),
-  "clock.increment": String(tournament.timeIncrement),
-  rated: String(tournament.rated),
-  variant: "standard",
-  rules: "noRematch,noGiveTime,noEarlyDraw",
-  message:
-    "♟ Tournament Match\n\nYour game vs {opponent} is ready!\n\nClick the link to start your match:\n{game}",
-});
+  const body = new URLSearchParams({
+    players,
+    "clock.limit": String(tournament.timeMinutes * 60),
+    "clock.increment": String(tournament.timeIncrement),
+    rated: String(tournament.rated),
+    variant: "standard",
+    rules: "noAbort,noRematch,noGiveTime,noEarlyDraw",
+    message:
+      `♟ ${tournament.name}\n\n` +
+      `Your tournament match against {opponent} is ready!\n\n` +
+      `⏱ Time Control: ${tournament.timeMinutes}+${tournament.timeIncrement}\n\n` +
+      `▶ Play your game:\n{game}`,
+  });
 
   const res = await fetch("https://lichess.org/api/bulk-pairing", {
     method: "POST",
@@ -105,30 +110,40 @@ const body = new URLSearchParams({
     },
   });
   // save lichess game ids
-await Promise.all(
-  data.games.map(async (game: any) => {
-    const result = await prisma.match.updateMany({
-      where: {
-        OR: [
-          {
-            player1: { user: { lichessId: game.white } },
-            player2: { user: { lichessId: game.black } },
-          },
-          {
-            player1: { user: { lichessId: game.black } },
-            player2: { user: { lichessId: game.white } },
-          },
-        ],
-      },
-      data: {
-        lichessGameId: game.id,
-      },
-    });
+  const gameIds: string[] = [];
 
-    console.log("UPDATE RESULT:", result);
-  }),
-);
+  await Promise.all(
+    data.games.map(async (game: any) => {
+      gameIds.push(game.id);
 
+      const result = await prisma.match.updateMany({
+        where: {
+          OR: [
+            {
+              player1: { user: { lichessId: game.white } },
+              player2: { user: { lichessId: game.black } },
+            },
+            {
+              player1: { user: { lichessId: game.black } },
+              player2: { user: { lichessId: game.white } },
+            },
+          ],
+        },
+        data: {
+          lichessGameId: game.id,
+        },
+      });
+
+      console.log("UPDATE RESULT:", result);
+    }),
+  );
+
+  // start lichess stream for this tournament
+  const streamId = `tournament-${tournamentId}`;
+
+  startGameStream(gameIds, streamId).catch((err) =>
+    console.error(`Stream failed for ${streamId}:`, err),
+  );
   /*
   GENERATE FUTURE ROUNDS (EMPTY MATCHES)
   */

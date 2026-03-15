@@ -80,7 +80,8 @@ setActiveMatchId(null);
           return (
             <Popover
               key={match.id}
-              open={activeMatchId === match.id}
+              // open={activeMatchId === match.id}
+              open={false}
               onOpenChange={(open) => {
                 if (open) {
                   setActiveMatchId(match.id);
