@@ -11,6 +11,19 @@ export async function generateRound1(
 
   const pairs = pairing(members);
 
+  const tournament = await prisma.tournament.findUnique({
+    where: { id: tournamentId },
+    select: {
+      timeMinutes: true,
+      timeIncrement: true,
+      rated: true,
+    },
+  });
+
+  if (!tournament) {
+    throw new Error("Tournament not found");
+  }
+
   /*
   ROUND 1
   */
@@ -59,16 +72,16 @@ const players = createdMatches
   .join(",");
 
   // call lichess bulk pairing
-  const body = new URLSearchParams({
-    players,
-    "clock.limit": "300",
-    "clock.increment": "3",
-    rated: "false",
-    variant: "standard",
-    rules: "noRematch,noGiveTime,noEarlyDraw",
-    message:
-      "♟ Tournament Match\n\nYour game vs {opponent} is ready!\n\nClick the link to start your match:\n{game}",
-  });
+const body = new URLSearchParams({
+  players,
+  "clock.limit": String(tournament.timeMinutes * 60),
+  "clock.increment": String(tournament.timeIncrement),
+  rated: String(tournament.rated),
+  variant: "standard",
+  rules: "noRematch,noGiveTime,noEarlyDraw",
+  message:
+    "♟ Tournament Match\n\nYour game vs {opponent} is ready!\n\nClick the link to start your match:\n{game}",
+});
 
   const res = await fetch("https://lichess.org/api/bulk-pairing", {
     method: "POST",

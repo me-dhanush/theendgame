@@ -26,6 +26,10 @@ model Tournament {
   rounds  Round[]
   members TournamentMember[]
 
+  timeMinutes   Int
+  timeIncrement Int
+  rated         Boolean
+
   status TournamentStatus @default(pending)
 
   createdAt DateTime @default(now())
@@ -72,8 +76,8 @@ model Match {
   player2Id String?
   player2   TournamentMember? @relation("Player2Matches", fields: [player2Id], references: [id])
 
-  score1 Int?
-  score2 Int?
+  score1 Float?
+  score2 Float?
 
   status MatchStatus @default(pending)
 

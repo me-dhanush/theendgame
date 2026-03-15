@@ -8,6 +8,9 @@ import { generateRound1 } from "./generateRound1";
 export async function createTournament(data: {
   name: string;
   players: Entrant[];
+  timeMinutes: number;
+  timeIncrement: number;
+  rated: boolean;
 }) {
   console.log("=== CREATE TOURNAMENT START ===");
   console.log("Incoming data:", data);
@@ -22,6 +25,9 @@ export async function createTournament(data: {
     data: {
       name: data.name,
       hostId: user.id,
+      timeMinutes: data.timeMinutes,
+      timeIncrement: data.timeIncrement,
+      rated: data.rated,
     },
   });
 

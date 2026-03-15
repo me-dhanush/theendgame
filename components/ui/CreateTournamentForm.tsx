@@ -24,10 +24,26 @@ const users = [
   { name: "shuspriggan", rating: 1800 },
   { name: "theendgamechess", rating: 1500 },
 ];
+const presets = [
+  { m: 1, i: 0 },
+  { m: 2, i: 1 },
+  { m: 3, i: 0 },
+  { m: 3, i: 2 },
+  { m: 5, i: 0 },
+  { m: 5, i: 3 },
+  { m: 10, i: 0 },
+  { m: 10, i: 5 },
+  { m: 15, i: 10 },
+  { m: 30, i: 0 },
+  { m: 30, i: 20 },
+];
   const [tournamentName, setTournamentName] = useState("");
   const [players, setPlayers] = useState<Player[]>(users);
   const [username, setUsername] = useState("");
   const [rating, setRating] = useState("");
+  const [minutes, setMinutes] = useState(5);
+const [increment, setIncrement] = useState(3);
+const [rated, setRated] = useState(false);
 
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -43,6 +59,11 @@ const router = useRouter();
 function addPlayer() {
   if (!username.trim() || !rating) return;
 
+  if (players.some((p) => p.name === username.trim())) {
+    setError("Player already added");
+    return;
+  }
+
   setPlayers((prev) => [
     ...prev,
     { name: username.trim(), rating: Number(rating) },
@@ -52,9 +73,9 @@ function addPlayer() {
   setRating("");
 }
 
-  function removePlayer(index: number) {
-    setPlayers((prev) => prev.filter((_, i) => i !== index));
-  }
+function removePlayer(name: string) {
+  setPlayers((prev) => prev.filter((p) => p.name !== name));
+}
 
   async function handleCreate() {
     try {
@@ -71,6 +92,9 @@ function addPlayer() {
       const tournament = await createTournament({
         name: tournamentName,
         players,
+        timeMinutes: minutes,
+        timeIncrement: increment,
+        rated,
       });
 
       onGenerate(tournament.id);
@@ -108,6 +132,112 @@ return (
   focus:outline-none focus:border-blue-500
   transition-colors"
             />
+          </div>
+        </div>
+
+        {/* Time Control */}
+        <div className="grid grid-cols-3 gap-8">
+          <div>
+            <h3 className="font-medium">Time Control</h3>
+            <p className="text-sm text-zinc-500">
+              Choose minutes and increment
+            </p>
+          </div>
+
+          <div className="col-span-2 space-y-4">
+            {/* Minutes */}
+            <div>
+              <div className="flex justify-between text-sm mb-1">
+                <span>Minutes per side</span>
+                <span className="font-semibold">{minutes}</span>
+              </div>
+
+              <input
+                type="range"
+                min={1}
+                max={60}
+                value={minutes}
+                onChange={(e) => setMinutes(Number(e.target.value))}
+                className="w-full"
+              />
+            </div>
+
+            {/* Increment */}
+            <div>
+              <div className="flex justify-between text-sm mb-1">
+                <span>Increment in seconds</span>
+                <span className="font-semibold">{increment}</span>
+              </div>
+
+              <input
+                type="range"
+                min={0}
+                max={30}
+                value={increment}
+                onChange={(e) => setIncrement(Number(e.target.value))}
+                className="w-full"
+              />
+            </div>
+
+            {/* Presets */}
+            <div className="flex flex-wrap gap-2 pt-2">
+              {presets.map((p) => {
+                const active = minutes === p.m && increment === p.i;
+
+                return (
+                  <button
+                    type="button"
+                    key={`${p.m}+${p.i}`}
+                    onClick={() => {
+                      setMinutes(p.m);
+                      setIncrement(p.i);
+                    }}
+                    className={`px-3 py-1 rounded-md text-sm
+            ${
+              active
+                ? "bg-green-600 text-white"
+                : "bg-zinc-200 dark:bg-zinc-800"
+            }`}
+                  >
+                    {p.m}+{p.i}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+
+        {/* Game Mode */}
+        <div className="grid grid-cols-3 gap-8 items-center">
+          <div>
+            <h3 className="font-medium">Game Mode</h3>
+            <p className="text-sm text-zinc-500">
+              Choose rated or casual games
+            </p>
+          </div>
+
+          <div className="col-span-2 flex rounded-lg overflow-hidden border">
+            <button
+              onClick={() => setRated(false)}
+              className={`flex-1 py-3 ${
+                !rated
+                  ? "bg-green-600 text-white"
+                  : "bg-zinc-100 dark:bg-zinc-800"
+              }`}
+            >
+              Casual
+            </button>
+
+            <button
+              onClick={() => setRated(true)}
+              className={`flex-1 py-3 ${
+                rated
+                  ? "bg-green-600 text-white"
+                  : "bg-zinc-100 dark:bg-zinc-800"
+              }`}
+            >
+              Rated
+            </button>
           </div>
         </div>
 
@@ -174,7 +304,7 @@ return (
                 </span>
 
                 <button
-                  onClick={() => removePlayer(i)}
+                  onClick={() => removePlayer(p.name)}
                   className="text-sm text-red-500"
                 >
                   Remove
