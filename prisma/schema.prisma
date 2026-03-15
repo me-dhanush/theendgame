@@ -81,13 +81,34 @@ model Match {
 
   status MatchStatus @default(pending)
 
-  lichessGameId String?
+  games Game[]
+
+  matchWinner String?
 
   round Round @relation(fields: [roundId], references: [id], onDelete: Cascade)
 
   @@index([roundId])
   @@index([player1Id])
   @@index([player2Id])
+}
+
+model Game {
+  id        String   @id @default(cuid())
+  matchId   String
+  lichessId String   @unique
+
+  status GameStatus @default(started)
+
+  whiteLichessId String?
+  blackLichessId String?
+
+  gameWinner String?
+
+  createdAt DateTime @default(now())
+
+  match Match @relation(fields: [matchId], references: [id], onDelete: Cascade)
+
+  @@index([matchId])
 }
 
 enum TournamentStatus {
@@ -101,4 +122,21 @@ enum MatchStatus {
   pending
   started
   finished
+}
+
+enum GameStatus {
+  created
+  started
+  aborted
+  mate
+  resign
+  stalemate
+  timeout
+  draw
+  outoftime
+  cheat
+  noStart
+  unknownFinish
+  insufficientMaterialClaim
+  variantEnd
 }

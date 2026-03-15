@@ -151,48 +151,48 @@ export default function TournamentClient({ tournament }: Props) {
             </div>
 
             {/* ROUND MATCHES */}
-<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-  {rounds[selectedRound]?.matches.map((match: any) => (
-    <div
-      key={match.id}
-      className="border border-border rounded-xl p-5 bg-muted/20 hover:bg-muted/40 transition"
-    >
-      {/* MATCH GRID */}
-      <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3 text-lg font-medium">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+              {rounds[selectedRound]?.matches.map((match: any) => (
+                <div
+                  key={match.id}
+                  className="border border-border rounded-xl p-5 bg-muted/20 hover:bg-muted/40 transition"
+                >
+                  {/* MATCH GRID */}
+                  <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3 text-lg font-medium">
+                    {/* Player 1 */}
+                    <span className="text-right truncate">
+                      {match.player1?.user?.username ?? "TBD"}
+                    </span>
 
-        {/* Player 1 */}
-        <span className="text-right truncate">
-          {match.player1?.user?.username ?? "TBD"}
-        </span>
+                    {/* Score */}
+                    <span className="text-xl font-bold text-center">
+                      {match.score1 !== null && match.score2 !== null
+                        ? `${match.score1} - ${match.score2}`
+                        : "vs"}
+                    </span>
 
-        {/* Score */}
-        <span className="text-xl font-bold text-center">
-          {match.score1 ?? 0} - {match.score2 ?? 0}
-        </span>
+                    {/* Player 2 */}
+                    <span className="text-left truncate">
+                      {match.player2?.user?.username ?? "TBD"}
+                    </span>
+                  </div>
 
-        {/* Player 2 */}
-        <span className="text-left truncate">
-          {match.player2?.user?.username ?? "TBD"}
-        </span>
-
-      </div>
-
-      {/* BUTTON */}
-      {match.lichessGameId && (
-        <div className="mt-4 flex justify-center">
-          <a
-            href={`https://lichess.org/${match.lichessGameId}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-sm px-4 py-1.5 rounded-md bg-primary/10 text-primary hover:bg-primary/20 transition"
-          >
-            View Game
-          </a>
-        </div>
-      )}
-    </div>
-  ))}
-</div>
+                  {/* BUTTON */}
+                  {match.games?.[0]?.lichessId && (
+                    <div className="mt-4 flex justify-center">
+                      <a
+                        href={`https://lichess.org/${match.games[0].lichessId}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm px-4 py-1.5 rounded-md bg-primary/10 text-primary hover:bg-primary/20 transition"
+                      >
+                        View Game
+                      </a>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
         )}
       </div>

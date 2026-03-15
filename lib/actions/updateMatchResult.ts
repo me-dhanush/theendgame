@@ -8,12 +8,25 @@ export async function updateMatchResult(
   score2: number,
   lichessGameId?: string,
 ) {
-  return prisma.match.update({
+  const match = await prisma.match.update({
     where: { id: matchId },
     data: {
       score1,
       score2,
-      lichessGameId,
+      status: "finished",
     },
   });
+
+  if (lichessGameId) {
+    await prisma.game.upsert({
+      where: { lichessId: lichessGameId },
+      update: {},
+      create: {
+        matchId: matchId,
+        lichessId: lichessGameId,
+      },
+    });
+  }
+
+  return match;
 }

@@ -2,10 +2,10 @@ import { prisma } from "@/lib/prisma";
 import { readNdjsonStream } from "@/lib/readNdjsonStream";
 
 export async function startGameStream(gameIds: string[], streamId: string) {
-
   const res = await fetch(`https://lichess.org/api/stream/games/${streamId}`, {
     method: "POST",
     headers: {
+      Authorization: `Bearer ${process.env.LICHESS_TOKEN}`,
       "Content-Type": "text/plain",
     },
     body: gameIds.join(","),
@@ -16,8 +16,7 @@ export async function startGameStream(gameIds: string[], streamId: string) {
   }
 
   await readNdjsonStream<any>(res, async (game) => {
-    console.log("Game update:", game.id, game.statusName);
-
+    console.log(`[${streamId}]`, game.id, game.statusName);
     await updateMatchFromStream(game);
   });
 }
@@ -25,25 +24,43 @@ export async function startGameStream(gameIds: string[], streamId: string) {
 async function updateMatchFromStream(game: any) {
   if (!game.statusName) return;
 
-  // mark match started
+  const dbGame = await prisma.game.findUnique({
+    where: { lichessId: game.id },
+  });
+
+  if (!dbGame) return;
+
   if (game.statusName === "started") {
-    await prisma.match.updateMany({
-      where: { lichessGameId: game.id },
+    await prisma.game.update({
+      where: { id: dbGame.id },
       data: { status: "started" },
     });
+
+    await prisma.match.update({
+      where: { id: dbGame.matchId },
+      data: { status: "started" },
+    });
+
     return;
   }
 
   const finishedStates = [
     "mate",
     "resign",
-    "draw",
-    "timeout",
     "stalemate",
-    "aborted",
+    "timeout",
+    "draw",
+    "outoftime",
+    "cheat",
+    "noStart",
+    "unknownFinish",
+    "insufficientMaterialClaim",
+    "variantEnd",
   ];
 
   if (!finishedStates.includes(game.statusName)) return;
+
+  if (dbGame.status !== "started") return;
 
   let score1 = 0.5;
   let score2 = 0.5;
@@ -58,12 +75,31 @@ async function updateMatchFromStream(game: any) {
     score2 = 1;
   }
 
-  await prisma.match.updateMany({
-    where: { lichessGameId: game.id },
+  let winnerLichessId: string | null = null;
+
+  if (game.winner === "white") {
+    winnerLichessId = dbGame.whiteLichessId;
+  }
+
+  if (game.winner === "black") {
+    winnerLichessId = dbGame.blackLichessId;
+  }
+
+  await prisma.game.update({
+    where: { id: dbGame.id },
+    data: {
+      status: game.statusName,
+      gameWinner: winnerLichessId,
+    },
+  });
+
+  await prisma.match.update({
+    where: { id: dbGame.matchId },
     data: {
       status: "finished",
       score1,
       score2,
+      matchWinner: winnerLichessId,
     },
   });
 }

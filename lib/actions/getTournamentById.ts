@@ -28,6 +28,7 @@ export async function getTournamentById(id: string) {
                 player2: {
                   include: { user: true },
                 },
+                games: true,
               },
             },
           },
