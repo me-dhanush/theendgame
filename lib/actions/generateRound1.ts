@@ -1,5 +1,4 @@
 import { PrismaClient, TournamentMember } from "@prisma/client";
-import { startGameStream } from "./lichessStream";
 
 export async function generateRound1(
   prisma: PrismaClient,
@@ -152,12 +151,6 @@ await prisma.game.create({
   }),
 );
 
-  // start lichess stream for this tournament
-  const streamId = `tournament-${tournamentId}`;
-
-  startGameStream(gameIds, streamId).catch((err) =>
-    console.error(`Stream failed for ${streamId}:`, err),
-  );
   /*
   GENERATE FUTURE ROUNDS (EMPTY MATCHES)
   */

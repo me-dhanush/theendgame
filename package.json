@@ -10,7 +10,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate",
+    "stream": "tsx workers/lichessWorker.ts"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.4.2",
