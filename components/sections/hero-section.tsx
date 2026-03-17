@@ -20,7 +20,7 @@ export function HeroSection() {
       <div className="relative z-10 flex flex-col items-center justify-center text-center min-h-screen px-4 sm:px-6 lg:px-8">
         {/* Main Label */}
         <div className="mb-4 sm:mb-6 text-xs sm:text-sm font-bold uppercase tracking-widest text-primary">
-          ⚔️ Single Elimination Tournament
+          Single Elimination Tournament
         </div>
 
         {/* Big Headline */}

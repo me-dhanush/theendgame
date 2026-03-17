@@ -62,15 +62,16 @@ export async function generateRound1(
     },
   });
 
-  const players = createdMatches
-    .map((m) => {
-      if (!m.player1?.user?.lichessToken || !m.player2?.user?.lichessToken) {
-        throw new Error("Missing lichess OAuth token");
-      }
+const players = createdMatches
+  .map((m) => {
+    const [a, b] =
+      Math.random() < 0.5
+        ? [m.player1!.user!.lichessToken, m.player2!.user!.lichessToken]
+        : [m.player2!.user!.lichessToken, m.player1!.user!.lichessToken];
 
-      return `${m.player1.user.lichessToken}:${m.player2.user.lichessToken}`;
-    })
-    .join(",");
+    return `${a}:${b}`;
+  })
+  .join(",");
 
   // call lichess bulk pairing
   const body = new URLSearchParams({
@@ -79,7 +80,7 @@ export async function generateRound1(
     "clock.increment": String(tournament.timeIncrement),
     rated: String(tournament.rated),
     variant: "standard",
-    rules: "noAbort,noRematch,noGiveTime,noEarlyDraw",
+    rules: "noAbort,noRematch,noGiveTime",
     message:
       `♟ ${tournament.name}\n\n` +
       `Your tournament match against {opponent} is ready!\n\n` +

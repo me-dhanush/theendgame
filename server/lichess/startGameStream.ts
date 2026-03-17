@@ -61,7 +61,9 @@ async function updateMatchFromStream(game: any) {
 
   if (!finishedStates.includes(game.statusName)) return;
 
-  if (dbGame.status !== "started") return;
+const alreadyFinished = ["mate", "resign", "stalemate", "timeout", "draw"];
+
+if (alreadyFinished.includes(dbGame.status)) return;
 
   let score1 = 0.5;
   let score2 = 0.5;
@@ -96,6 +98,17 @@ await prisma.game.update({
   },
 });
 
+// ALWAYS UPDATE MATCH SCORE
+await prisma.match.update({
+  where: { id: dbGame.matchId },
+  data: {
+    score1: { increment: score1 },
+    score2: { increment: score2 },
+  },
+});
+
+console.log("Updating match score:", dbGame.matchId, score1, score2);
+
 const drawStates = [
   "draw",
   "stalemate",
@@ -110,12 +123,11 @@ if (drawStates.includes(game.statusName)) {
   return;
 }
 
+// WIN CASE
 await prisma.match.update({
   where: { id: dbGame.matchId },
   data: {
     status: "finished",
-    score1: { increment: score1 },
-    score2: { increment: score2 },
     matchWinner: winnerLichessId,
   },
 });
@@ -142,7 +154,16 @@ async function createRematch(matchId: string) {
     throw new Error("Missing lichess OAuth token");
   }
 
-  const players = `${match.player1.user.lichessToken}:${match.player2.user.lichessToken}`;
+  // get last game to know previous colors
+  const lastGame = await prisma.game.findFirst({
+    where: { matchId: match.id },
+    orderBy: { createdAt: "desc" },
+  });
+
+  if (!lastGame) throw new Error("Previous game not found");
+
+  // swap colors
+  const players = `${lastGame.blackLichessId}:${lastGame.whiteLichessId}`;
 
   const body = new URLSearchParams({
     players,

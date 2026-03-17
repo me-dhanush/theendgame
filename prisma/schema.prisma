@@ -76,8 +76,8 @@ model Match {
   player2Id String?
   player2   TournamentMember? @relation("Player2Matches", fields: [player2Id], references: [id])
 
-  score1 Float?
-  score2 Float?
+  score1 Float @default(0)
+  score2 Float @default(0)
 
   status MatchStatus @default(pending)
 
