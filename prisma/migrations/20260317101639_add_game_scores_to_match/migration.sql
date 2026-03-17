@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "Game" ADD COLUMN     "blackScore" DOUBLE PRECISION,
+ADD COLUMN     "whiteScore" DOUBLE PRECISION;

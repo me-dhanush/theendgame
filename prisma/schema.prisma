@@ -102,6 +102,9 @@ model Game {
   whiteLichessId String?
   blackLichessId String?
 
+  whiteScore Float?
+  blackScore Float?
+
   gameWinner String?
 
   createdAt DateTime @default(now())

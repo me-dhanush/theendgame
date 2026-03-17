@@ -111,45 +111,45 @@ export async function generateRound1(
   // save lichess game ids
   const gameIds: string[] = [];
 
-await Promise.all(
-  data.games.map(async (game: any) => {
-    gameIds.push(game.id);
+  await Promise.all(
+    data.games.map(async (game: any) => {
+      gameIds.push(game.id);
 
-    const match = await prisma.match.findFirst({
-      where: {
-        roundId: round1.id,
-        OR: [
-          {
-            player1: { user: { lichessId: game.white } },
-            player2: { user: { lichessId: game.black } },
-          },
-          {
-            player1: { user: { lichessId: game.black } },
-            player2: { user: { lichessId: game.white } },
-          },
-        ],
-      },
-      include: {
-        player1: { include: { user: true } },
-        player2: { include: { user: true } },
-      },
-    });
+      const match = await prisma.match.findFirst({
+        where: {
+          roundId: round1.id,
+          OR: [
+            {
+              player1: { user: { lichessId: game.white } },
+              player2: { user: { lichessId: game.black } },
+            },
+            {
+              player1: { user: { lichessId: game.black } },
+              player2: { user: { lichessId: game.white } },
+            },
+          ],
+        },
+        include: {
+          player1: { include: { user: true } },
+          player2: { include: { user: true } },
+        },
+      });
 
-    if (!match) {
-      console.error("Match not found for game:", game.id);
-      return;
-    }
+      if (!match) {
+        console.error("Match not found for game:", game.id);
+        return;
+      }
 
-await prisma.game.create({
-  data: {
-    matchId: match.id,
-    lichessId: game.id,
-    whiteLichessId: game.white,
-    blackLichessId: game.black,
-  },
-});
-  }),
-);
+      await prisma.game.create({
+        data: {
+          matchId: match.id,
+          lichessId: game.id,
+          whiteLichessId: game.white,
+          blackLichessId: game.black,
+        },
+      });
+    }),
+  );
 
   /*
   GENERATE FUTURE ROUNDS (EMPTY MATCHES)
