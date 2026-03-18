@@ -99,19 +99,8 @@ const [blackTitle, setBlackTitle] = useState<string | null>(null);
 
 return (
   <div
-    className="flex flex-col items-center justify-center p-4
-               bg-gray-100 dark:bg-zinc-950 transition-colors duration-300"
+    className="flex flex-col items-center justify-center transition-colors duration-300"
   >
-    <div className="w-full mb-4 text-center">
-      <div
-        className="inline-block px-4 py-2 rounded-lg shadow-md
-                  bg-zinc-800 text-white
-                  dark:bg-zinc-200 dark:text-black
-                  font-semibold tracking-wide uppercase text-sm"
-      >
-        {mode} TV
-      </div>
-    </div>
     <div
       className="w-[350px]
                  bg-white dark:bg-zinc-900

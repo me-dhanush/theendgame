@@ -94,13 +94,13 @@ export function Navbar() {
             <NavMenu />
 
             <div className="flex flex-row items-center gap-1 md:gap-3 shrink-0">
-              <Link
+              {/* <Link
                 href="/login"
                 className="bg-secondary text-white hidden md:flex items-center justify-center h-8 px-4 text-sm rounded-full
     bg-primary text-primary-foreground hover:opacity-90 transition"
               >
                 Connect Lichess
-              </Link>
+              </Link> */}
               <ThemeToggle />
 
               <button
@@ -187,14 +187,14 @@ export function Navbar() {
                   ))}
                 </motion.ul>
                 {/* Action buttons */}
-                <div className="flex flex-col gap-2">
+                {/* <div className="flex flex-col gap-2">
                   <Link
-                    href="#"
-                    className="bg-secondary h-8 flex items-center justify-center text-sm font-normal tracking-wide rounded-full text-white w-full px-4 shadow-[inset_0_1px_2px_rgba(255,255,255,0.25),0_3px_3px_-1.5px_rgba(16,24,40,0.06),0_1px_1px_rgba(16,24,40,0.08)] border border-white/[0.12] hover:bg-secondary/80 transition-all ease-out active:scale-95"
+                    href="/login"
+                    className="bg-secondary h-10 flex items-center justify-center text-sm font-normal tracking-wide rounded-full text-white w-full px-4 shadow-[inset_0_1px_2px_rgba(255,255,255,0.25),0_3px_3px_-1.5px_rgba(16,24,40,0.06),0_1px_1px_rgba(16,24,40,0.08)] border border-white/[0.12] hover:bg-secondary/80 transition-all ease-out active:scale-95"
                   >
                     Connect Lichess
                   </Link>
-                </div>
+                </div> */}
               </div>
             </motion.div>
           </>

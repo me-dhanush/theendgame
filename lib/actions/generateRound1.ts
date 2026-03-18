@@ -35,11 +35,12 @@ export async function generateRound1(
     },
   });
 
-  const matches = pairs.map(([p1, p2]) => ({
-    roundId: round1.id,
-    player1Id: p1.id,
-    player2Id: p2.id,
-  }));
+const matches = pairs.map(([p1, p2], i) => ({
+  roundId: round1.id,
+  matchNumber: i + 1,
+  player1Id: p1.id,
+  player2Id: p2.id,
+}));
 
   await prisma.match.createMany({
     data: matches,
@@ -47,7 +48,7 @@ export async function generateRound1(
 
   const createdMatches = await prisma.match.findMany({
     where: { roundId: round1.id },
-    orderBy: { id: "asc" },
+    orderBy: { matchNumber: "asc" },
     include: {
       player1: {
         include: {
@@ -170,11 +171,12 @@ const players = createdMatches
 
     matchesInRound = matchesInRound / 2;
 
-    const emptyMatches = Array.from({ length: matchesInRound }).map(() => ({
-      roundId: round.id,
-      player1Id: null,
-      player2Id: null,
-    }));
+const emptyMatches = Array.from({ length: matchesInRound }).map((_, i) => ({
+  roundId: round.id,
+  matchNumber: i + 1,
+  player1Id: null,
+  player2Id: null,
+}));
 
     await prisma.match.createMany({
       data: emptyMatches,

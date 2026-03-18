@@ -7,9 +7,9 @@ export default function LiveFeed() {
         {/* Header */}
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold tracking-tight">Lichess TV</h1>
-          <p className="text-neutral-400 mt-2">
+          {/* <p className="text-neutral-400 mt-2">
             Live Bullet · Blitz · Rapid Games
-          </p>
+          </p> */}
         </div>
 
         {/* Boards Container */}

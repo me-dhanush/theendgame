@@ -78,21 +78,41 @@ if (alreadyFinished.includes(dbGame.status)) return;
     score2 = 1;
   }
 
-  let winnerLichessId: string | null = null;
+const match = await prisma.match.findUnique({
+  where: { id: dbGame.matchId },
+  include: {
+    player1: true,
+    player2: true,
+  },
+});
 
-  if (game.winner === "white") {
-    winnerLichessId = dbGame.whiteLichessId;
-  }
+if (match === null) {
+  return;
+}
 
-  if (game.winner === "black") {
-    winnerLichessId = dbGame.blackLichessId;
+let winnerMemberId: string | null = null;
+
+if (game.winner === "white") {
+  if (match?.player1?.lichessId === dbGame.whiteLichessId) {
+    winnerMemberId = match.player1Id;
+  } else {
+    winnerMemberId = match.player2Id;
   }
+}
+
+if (game.winner === "black") {
+  if (match?.player1?.lichessId === dbGame.blackLichessId) {
+    winnerMemberId = match.player1Id;
+  } else {
+    winnerMemberId = match.player2Id;
+  }
+}
 
 await prisma.game.update({
   where: { id: dbGame.id },
   data: {
     status: game.statusName,
-    gameWinner: winnerLichessId,
+    gameWinner: game.winner,
     whiteScore: score1,
     blackScore: score2,
   },
@@ -128,7 +148,7 @@ await prisma.match.update({
   where: { id: dbGame.matchId },
   data: {
     status: "finished",
-    matchWinner: winnerLichessId,
+    matchWinnerId: winnerMemberId,
   },
 });
 }
@@ -162,8 +182,21 @@ async function createRematch(matchId: string) {
 
   if (!lastGame) throw new Error("Previous game not found");
 
-  // swap colors
-  const players = `${lastGame.blackLichessId}:${lastGame.whiteLichessId}`;
+const token1 = match.player1!.user!.lichessToken!;
+const token2 = match.player2!.user!.lichessToken!;
+
+let whiteToken: string;
+let blackToken: string;
+
+if (lastGame.whiteLichessId === match.player1!.user!.lichessId) {
+  whiteToken = token2;
+  blackToken = token1;
+} else {
+  whiteToken = token1;
+  blackToken = token2;
+}
+
+const players = `${whiteToken}:${blackToken}`;
 
   const body = new URLSearchParams({
     players,

@@ -30,7 +30,6 @@ export default function TournamentClient({ tournament }: Props) {
         tournament={tournament}
         players={players}
         rounds={rounds}
-        totalMatches={totalMatches}
       />
 
       <TournamentTabs tab={tab} setTab={setTab} />

@@ -8,7 +8,7 @@ export default function MatchCard({ match }: any) {
   }
 
   return (
-    <div className="border border-border rounded-xl p-5 bg-muted/20 space-y-3">
+    <div className="bg-[#f1f3f3] dark:bg-[#394447] border border-border rounded-xl p-6 space-y-3">
       {/* PLAYERS */}
       <div className="flex justify-between font-medium">
         <span>{match.player1?.user?.username ?? "TBD"}</span>
@@ -37,7 +37,7 @@ export default function MatchCard({ match }: any) {
               rel="noopener noreferrer"
               className="
                 group flex items-center gap-2 px-3 py-1.5 rounded-lg
-                bg-muted border border-border
+                bg-mist-50 dark:bg-mist-900 border border-border
                 transition-all duration-200
                 hover:bg-primary/10 hover:border-primary
                 hover:shadow-sm hover:-translate-y-[1px]

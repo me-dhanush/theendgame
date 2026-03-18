@@ -8,11 +8,11 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  lichessId String   @unique
-  username  String
-  createdAt DateTime @default(now())
-  lichessToken String?
+  id                String             @id @default(cuid())
+  lichessId         String             @unique
+  username          String
+  createdAt         DateTime           @default(now())
+  lichessToken      String?
   tournamentsHosted Tournament[]       @relation("HostedTournaments")
   tournamentMembers TournamentMember[]
 }
@@ -31,6 +31,8 @@ model Tournament {
   rated         Boolean
 
   status TournamentStatus @default(pending)
+
+  currentRoundNumber Int @default(1)
 
   createdAt DateTime @default(now())
 
@@ -55,20 +57,22 @@ model TournamentMember {
 }
 
 model Round {
-  id           String @id @default(cuid())
-  tournamentId String
-  roundNumber  Int
+  id            String     @id @default(cuid())
+  tournamentId  String
+  roundNumber   Int
   bulkPairingId String?
-  tournament Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
-  matches    Match[]
+  tournament    Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  matches       Match[]
 
-  @@index([tournamentId])
   @@unique([tournamentId, roundNumber])
+  @@index([tournamentId])
 }
 
 model Match {
   id      String @id @default(cuid())
   roundId String
+
+  matchNumber Int
 
   player1Id String?
   player1   TournamentMember? @relation("Player1Matches", fields: [player1Id], references: [id])
@@ -83,19 +87,20 @@ model Match {
 
   games Game[]
 
-  matchWinner String?
+  matchWinnerId String?
 
   round Round @relation(fields: [roundId], references: [id], onDelete: Cascade)
 
+  @@unique([roundId, matchNumber])
   @@index([roundId])
   @@index([player1Id])
   @@index([player2Id])
 }
 
 model Game {
-  id        String   @id @default(cuid())
+  id        String @id @default(cuid())
   matchId   String
-  lichessId String   @unique
+  lichessId String @unique
 
   status GameStatus @default(started)
 
