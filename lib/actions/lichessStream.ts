@@ -99,7 +99,7 @@ async function updateMatchFromStream(game: any) {
       status: "finished",
       score1,
       score2,
-      matchWinner: winnerLichessId,
+      matchWinnerId: winnerLichessId,
     },
   });
 }
