@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import TournamentBracket from "@/components/sections/tournament-bracket";
 
 import TournamentHeader from "@/components/tournament/TournamentHeader";
@@ -16,13 +17,23 @@ export default function TournamentClient({ tournament }: Props) {
   // swapped default tab
   const [tab, setTab] = useState<"players" | "matches" | "bracket">("matches");
 
+  const tournamentId = tournament.id;
+  const currentRoundNumber = tournament.currentRoundNumber
   const rounds = tournament.rounds;
   const players = tournament.members;
+  const totalRounds = rounds.length;
 
-  const totalMatches = useMemo(
-    () => rounds.reduce((acc: number, r: any) => acc + r.matches.length, 0),
-    [rounds],
-  );
+  const canStartNextRound = currentRoundNumber < totalRounds;
+
+  const router = useRouter();
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      router.refresh(); // refetches server data
+    }, 5000); // every 5 seconds
+
+    return () => clearInterval(interval);
+  }, [router]);
 
   return (
     <div className="min-h-screen w-full flex flex-col bg-background text-foreground pt-10">
@@ -32,10 +43,14 @@ export default function TournamentClient({ tournament }: Props) {
         rounds={rounds}
       />
 
-      <TournamentTabs tab={tab} setTab={setTab} />
+      <TournamentTabs
+        tab={tab}
+        setTab={setTab}
+        tournamentId={tournamentId}
+        canStartNextRound={canStartNextRound}
+      />
 
       <div className="flex-1 overflow-auto p-12">
-
         {/* MATCHES FIRST */}
         {tab === "matches" && <TournamentMatches rounds={rounds} />}
 
@@ -50,7 +65,6 @@ export default function TournamentClient({ tournament }: Props) {
             </div>
           </div>
         )}
-
       </div>
     </div>
   );

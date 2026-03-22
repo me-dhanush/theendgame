@@ -200,5 +200,16 @@ export async function generateNextRound(
     }),
   );
 
+  /*
+Increment tournament round
+*/
+  await prisma.tournament.update({
+    where: { id: tournamentId },
+    data: {
+      currentRoundNumber: {
+        increment: 1,
+      },
+    },
+  });
   return nextRound;
 }

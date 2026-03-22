@@ -1,7 +1,6 @@
 // components/nav-links.ts
 export const navLinks = [
   { name: "Home", href: "#hero" },
-  { name: "Live TV", href: "#live-tv" },
-  { name: "Bracket", href: "#bracket" },
+  { name: "View Tournaments", href: "#view-tournaments" },
   // { name: "About", href: "#about" },
 ];

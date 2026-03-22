@@ -2,6 +2,8 @@ import { prisma } from "@/lib/prisma";
 import { readNdjsonStream } from "@/lib/readNdjsonStream";
 
 export async function startGameStream(gameIds: string[], streamId: string) {
+  console.log("🚀 Starting stream", { streamId, gameIds });
+
   const res = await fetch(`https://lichess.org/api/stream/games/${streamId}`, {
     method: "POST",
     headers: {
@@ -11,37 +13,32 @@ export async function startGameStream(gameIds: string[], streamId: string) {
     body: gameIds.join(","),
   });
 
+  console.log("📡 Stream response status:", res.status);
+
   if (!res.ok) {
     const text = await res.text();
+    console.error("❌ Stream failed:", text);
     throw new Error(`Lichess stream failed: ${text}`);
   }
 
+  console.log("✅ Stream connected successfully");
+
   await readNdjsonStream<any>(res, async (game) => {
-    console.log(`[${streamId}]`, game.id, game.statusName);
+    console.log(`🎮 [${streamId}] Incoming game update`, {
+      id: game.id,
+      status: game.statusName,
+      winner: game.winner,
+    });
+
     await updateMatchFromStream(game);
   });
 }
 
 async function updateMatchFromStream(game: any) {
-  if (!game.statusName) return;
+  console.log("🔄 Processing game:", game.id);
 
-  const dbGame = await prisma.game.findUnique({
-    where: { lichessId: game.id },
-  });
-
-  if (!dbGame) return;
-
-  if (game.statusName === "started") {
-    await prisma.game.update({
-      where: { id: dbGame.id },
-      data: { status: "started" },
-    });
-
-    await prisma.match.update({
-      where: { id: dbGame.matchId },
-      data: { status: "started" },
-    });
-
+  if (!game.statusName) {
+    console.warn("⚠️ Missing statusName, skipping");
     return;
   }
 
@@ -59,101 +56,193 @@ async function updateMatchFromStream(game: any) {
     "variantEnd",
   ];
 
-  if (!finishedStates.includes(game.statusName)) return;
+  const dbGame = await prisma.game.findUnique({
+    where: { lichessId: game.id },
+  });
 
-const alreadyFinished = ["mate", "resign", "stalemate", "timeout", "draw"];
+  if (!dbGame) {
+    console.warn("⚠️ Game not found in DB:", game.id);
+    return;
+  }
 
-if (alreadyFinished.includes(dbGame.status)) return;
+  console.log("📦 DB Game found:", {
+    id: dbGame.id,
+    status: dbGame.status,
+  });
+
+  if (game.statusName === "started") {
+    console.log("▶️ Game started event");
+
+    if (finishedStates.includes(dbGame.status)) {
+      console.log("⛔ Already finished, ignoring start");
+      return;
+    }
+
+    await prisma.game.update({
+      where: { id: dbGame.id },
+      data: { status: "started" },
+    });
+
+    await prisma.match.update({
+      where: { id: dbGame.matchId },
+      data: { status: "started" },
+    });
+
+    console.log("✅ Match + Game marked as started");
+
+    return;
+  }
+
+  if (!finishedStates.includes(game.statusName)) {
+    console.log("⏳ Not a finished state, skipping:", game.statusName);
+    return;
+  }
+
+  console.log("🏁 Game finished:", game.statusName);
+
+  const match = await prisma.match.findUnique({
+    where: { id: dbGame.matchId },
+    include: {
+      player1: true,
+      player2: true,
+    },
+  });
+
+  if (!match) {
+    console.warn("⚠️ Match not found:", dbGame.matchId);
+    return;
+  }
+
+  console.log("🤝 Match found:", match.id);
 
   let score1 = 0.5;
   let score2 = 0.5;
 
+  const isPlayer1White = match.player1?.lichessId === dbGame.whiteLichessId;
+
+  console.log("🎨 Color mapping:", {
+    isPlayer1White,
+    white: dbGame.whiteLichessId,
+    player1: match.player1?.lichessId,
+  });
+
   if (game.winner === "white") {
-    score1 = 1;
-    score2 = 0;
+    console.log("🏆 White wins");
+
+    if (isPlayer1White) {
+      score1 = 1;
+      score2 = 0;
+    } else {
+      score1 = 0;
+      score2 = 1;
+    }
   }
 
   if (game.winner === "black") {
-    score1 = 0;
-    score2 = 1;
+    console.log("🏆 Black wins");
+
+    if (isPlayer1White) {
+      score1 = 0;
+      score2 = 1;
+    } else {
+      score1 = 1;
+      score2 = 0;
+    }
   }
 
-const match = await prisma.match.findUnique({
-  where: { id: dbGame.matchId },
-  include: {
-    player1: true,
-    player2: true,
-  },
-});
+  console.log("📊 Calculated scores:", { score1, score2 });
 
-if (match === null) {
-  return;
-}
+  let winnerMemberId: string | null = null;
 
-let winnerMemberId: string | null = null;
-
-if (game.winner === "white") {
-  if (match?.player1?.lichessId === dbGame.whiteLichessId) {
-    winnerMemberId = match.player1Id;
-  } else {
-    winnerMemberId = match.player2Id;
+  if (game.winner === "white") {
+    winnerMemberId = isPlayer1White ? match.player1Id : match.player2Id;
   }
-}
 
-if (game.winner === "black") {
-  if (match?.player1?.lichessId === dbGame.blackLichessId) {
-    winnerMemberId = match.player1Id;
-  } else {
-    winnerMemberId = match.player2Id;
+  if (game.winner === "black") {
+    winnerMemberId = isPlayer1White ? match.player2Id : match.player1Id;
   }
-}
 
-await prisma.game.update({
-  where: { id: dbGame.id },
-  data: {
-    status: game.statusName,
-    gameWinner: game.winner,
-    whiteScore: score1,
-    blackScore: score2,
-  },
-});
+  console.log("🥇 Winner member ID:", winnerMemberId);
 
-// ALWAYS UPDATE MATCH SCORE
-await prisma.match.update({
-  where: { id: dbGame.matchId },
-  data: {
-    score1: { increment: score1 },
-    score2: { increment: score2 },
-  },
-});
+  const drawStates = [
+    "draw",
+    "stalemate",
+    "insufficientMaterialClaim",
+    "variantEnd",
+  ];
 
-console.log("Updating match score:", dbGame.matchId, score1, score2);
+  let shouldCreateRematch = false;
 
-const drawStates = [
-  "draw",
-  "stalemate",
-  "insufficientMaterialClaim",
-  "variantEnd",
-];
+  await prisma.$transaction(async (tx) => {
+    console.log("🔐 Starting transaction");
 
-if (drawStates.includes(game.statusName)) {
-  console.log("Draw detected → creating rematch");
+    const current = await tx.game.findUnique({
+      where: { id: dbGame.id },
+      select: { status: true },
+    });
 
-  await createRematch(dbGame.matchId);
-  return;
-}
+    if (!current) {
+      console.warn("⚠️ Game disappeared during transaction");
+      return;
+    }
 
-// WIN CASE
-await prisma.match.update({
-  where: { id: dbGame.matchId },
-  data: {
-    status: "finished",
-    matchWinnerId: winnerMemberId,
-  },
-});
+    if (finishedStates.includes(current.status)) {
+      console.log("⛔ Already finished in DB, skipping");
+      return;
+    }
+
+    await tx.game.update({
+      where: { id: dbGame.id },
+      data: {
+        status: game.statusName,
+        gameWinner: game.winner,
+        whiteScore: score1,
+        blackScore: score2,
+      },
+    });
+
+    console.log("✅ Game updated in DB");
+
+    if (
+      drawStates.includes(game.statusName) &&
+      !drawStates.includes(current.status)
+    ) {
+      shouldCreateRematch = true;
+      console.log("♻️ Draw detected → rematch required");
+    }
+
+    await tx.match.update({
+      where: { id: dbGame.matchId },
+      data: {
+        score1: { increment: score1 },
+        score2: { increment: score2 },
+        ...(drawStates.includes(game.statusName)
+          ? {}
+          : {
+              status: "finished",
+              matchWinnerId: winnerMemberId,
+            }),
+      },
+    });
+
+    console.log("✅ Match updated in DB");
+  });
+
+  console.log("🎯 Final update done:", {
+    matchId: dbGame.matchId,
+    score1,
+    score2,
+  });
+
+  if (shouldCreateRematch) {
+    console.log("🚀 Creating rematch...");
+    await createRematch(dbGame.matchId);
+  }
 }
 
 async function createRematch(matchId: string) {
+  console.log("🔁 Creating rematch for match:", matchId);
+
   const match = await prisma.match.findUnique({
     where: { id: matchId },
     include: {
@@ -163,7 +252,12 @@ async function createRematch(matchId: string) {
     },
   });
 
-  if (!match) throw new Error("Match not found");
+  if (!match) {
+    console.error("❌ Match not found for rematch");
+    throw new Error("Match not found");
+  }
+
+  console.log("📦 Loaded match for rematch");
 
   const tournament = match.round.tournament;
 
@@ -171,32 +265,37 @@ async function createRematch(matchId: string) {
     !match.player1?.user?.lichessToken ||
     !match.player2?.user?.lichessToken
   ) {
+    console.error("❌ Missing lichess tokens");
     throw new Error("Missing lichess OAuth token");
   }
 
-  // get last game to know previous colors
   const lastGame = await prisma.game.findFirst({
     where: { matchId: match.id },
     orderBy: { createdAt: "desc" },
   });
 
-  if (!lastGame) throw new Error("Previous game not found");
+  if (!lastGame) {
+    console.error("❌ No previous game found");
+    throw new Error("Previous game not found");
+  }
 
-const token1 = match.player1!.user!.lichessToken!;
-const token2 = match.player2!.user!.lichessToken!;
+  console.log("🎮 Last game:", lastGame.id);
 
-let whiteToken: string;
-let blackToken: string;
+  const token1 = match.player1!.user!.lichessToken!;
+  const token2 = match.player2!.user!.lichessToken!;
 
-if (lastGame.whiteLichessId === match.player1!.user!.lichessId) {
-  whiteToken = token2;
-  blackToken = token1;
-} else {
-  whiteToken = token1;
-  blackToken = token2;
-}
+  let whiteToken: string;
+  let blackToken: string;
 
-const players = `${whiteToken}:${blackToken}`;
+  if (lastGame.whiteLichessId === match.player1!.user!.lichessId) {
+    whiteToken = token2;
+    blackToken = token1;
+  } else {
+    whiteToken = token1;
+    blackToken = token2;
+  }
+
+  const players = `${whiteToken}:${blackToken}`;
 
   const body = new URLSearchParams({
     players,
@@ -211,6 +310,8 @@ const players = `${whiteToken}:${blackToken}`;
       `⏱ Time Control: ${tournament.timeMinutes}+${tournament.timeIncrement}\n\n` +
       `▶ Play your game:\n{game}`,
   });
+
+  console.log("📡 Sending rematch request to Lichess");
 
   const res = await fetch("https://lichess.org/api/bulk-pairing", {
     method: "POST",
@@ -228,6 +329,8 @@ const players = `${whiteToken}:${blackToken}`;
   const data = await res.json();
 
   const game = data.games[0];
+
+  console.log("✅ Rematch created:", game.id);
 
   await prisma.game.create({
     data: {
