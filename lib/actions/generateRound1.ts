@@ -104,6 +104,14 @@ const players = createdMatches
 
   const data = await res.json();
 
+  await prisma.tournament.update({
+    where: { id: tournamentId },
+    data: {
+      status: "started",
+      currentRoundNumber: 1, // optional but correct
+    },
+  });
+
   await prisma.round.update({
     where: { id: round1.id },
     data: {

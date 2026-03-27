@@ -15,6 +15,7 @@ model User {
   lichessToken      String?
   tournamentsHosted Tournament[]       @relation("HostedTournaments")
   tournamentMembers TournamentMember[]
+  lobbyMembers LobbyMember[]
 }
 
 model Tournament {
@@ -22,6 +23,8 @@ model Tournament {
   name   String
   hostId String
   host   User   @relation("HostedTournaments", fields: [hostId], references: [id], onDelete: Cascade)
+
+  lobby Lobby?
 
   rounds  Round[]
   members TournamentMember[]
@@ -39,6 +42,30 @@ model Tournament {
   @@index([hostId])
 }
 
+model Lobby {
+  id           String @id @default(cuid())
+  tournamentId String @unique
+  tournament Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+
+  members LobbyMember[]
+  status  LobbyStatus @default(waiting)
+}
+
+model LobbyMember {
+  id        String @id @default(cuid())
+  lobbyId   String
+  lichessId String
+  rating    Int?
+
+  lobby Lobby @relation(fields: [lobbyId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [lichessId], references: [lichessId], onDelete: Cascade)
+
+  joinedAt DateTime @default(now())
+
+  @@unique([lobbyId, lichessId])
+  @@index([lobbyId])
+}
+
 model TournamentMember {
   id           String @id @default(cuid())
   tournamentId String
@@ -50,6 +77,8 @@ model TournamentMember {
 
   matchesAsPlayer1 Match[] @relation("Player1Matches")
   matchesAsPlayer2 Match[] @relation("Player2Matches")
+
+  wonMatches Match[] @relation("MatchWinner")
 
   @@unique([tournamentId, lichessId])
   @@index([tournamentId])
@@ -89,6 +118,8 @@ model Match {
 
   matchWinnerId String?
 
+  matchWinner TournamentMember? @relation("MatchWinner", fields: [matchWinnerId], references: [id])
+
   round Round @relation(fields: [roundId], references: [id], onDelete: Cascade)
 
   @@unique([roundId, matchNumber])
@@ -117,6 +148,13 @@ model Game {
   match Match @relation(fields: [matchId], references: [id], onDelete: Cascade)
 
   @@index([matchId])
+}
+
+enum LobbyStatus {
+  waiting
+  full
+  started
+  cancelled
 }
 
 enum TournamentStatus {

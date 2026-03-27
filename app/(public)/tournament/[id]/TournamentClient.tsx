@@ -50,7 +50,7 @@ export default function TournamentClient({ tournament }: Props) {
         canStartNextRound={canStartNextRound}
       />
 
-      <div className="flex-1 overflow-auto p-12">
+      <div className="flex-1 overflow-auto">
         {/* MATCHES FIRST */}
         {tab === "matches" && <TournamentMatches rounds={rounds} />}
 
